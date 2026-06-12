@@ -1,0 +1,1110 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroPredict Pro | Diagnostic Prédictif</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.0/papaparse.min.js"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #3b82f6;
+            --primary-dark: #1d4ed8;
+            --success: #10b981;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --info: #06b6d4;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            --gradient-success: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+            --gradient-danger: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            min-height: 100vh; font-family: 'Inter', 'Segoe UI', sans-serif; color: var(--gray-800);
+        }
+        
+        /* Navbar */
+        .navbar-cockpit {
+            position: sticky; top: 0; z-index: 1000;
+            background: white; backdrop-filter: blur(10px);
+            border-bottom: 1px solid var(--gray-200); 
+            padding: 0.75rem 0; margin-bottom: 2rem;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+        }
+        .nav-brand { 
+            font-size: 1.8rem; font-weight: 800; 
+            background: var(--gradient); 
+            -webkit-background-clip: text; 
+            background-clip: text; 
+            -webkit-text-fill-color: transparent; 
+            text-decoration: none;
+        }
+        .nav-link-cockpit { 
+            color: var(--gray-600) !important; 
+            padding: 0.5rem 1.2rem; 
+            border-radius: 40px; 
+            font-weight: 500; 
+            transition: all 0.3s; 
+            text-decoration: none;
+        }
+        .nav-link-cockpit:hover { 
+            background: var(--gray-100); 
+            color: var(--primary) !important; 
+        }
+        .nav-link-cockpit.active { 
+            background: var(--gradient); 
+            color: white !important; 
+        }
+        
+        /* Cartes */
+        .card-cockpit { 
+            background: white; 
+            border-radius: 32px; 
+            padding: 2rem; 
+            box-shadow: 0 20px 35px -10px rgba(0,0,0,0.08);
+            border: 1px solid var(--gray-200);
+        }
+        
+        /* Mode selector */
+        .mode-selector { 
+            display: flex; 
+            gap: 1rem; 
+            background: var(--gray-100); 
+            padding: 0.5rem; 
+            border-radius: 60px; 
+            margin-bottom: 2rem; 
+        }
+        .mode-btn { 
+            flex: 1; 
+            padding: 0.8rem; 
+            border: none; 
+            background: transparent; 
+            color: var(--gray-600); 
+            border-radius: 60px; 
+            font-weight: 600; 
+            cursor: pointer; 
+            transition: all 0.3s; 
+        }
+        .mode-btn.active { 
+            background: var(--gradient); 
+            color: white; 
+            box-shadow: 0 4px 12px rgba(37,99,235,0.3);
+        }
+        
+        /* Formulaires */
+        .form-control-cockpit { 
+            background: var(--gray-50); 
+            border: 1.5px solid var(--gray-200); 
+            border-radius: 14px; 
+            padding: 0.8rem 1rem; 
+            color: var(--gray-800) !important; 
+            transition: all 0.2s;
+        }
+        .form-control-cockpit:focus { 
+            border-color: var(--primary); 
+            outline: none; 
+            box-shadow: 0 0 0 3px rgba(37,99,235,0.1);
+        }
+        label { 
+            color: var(--gray-600); 
+            font-size: 0.75rem; 
+            text-transform: uppercase; 
+            letter-spacing: 0.5px; 
+            margin-bottom: 0.3rem; 
+            font-weight: 600;
+        }
+        
+        /* Tooltip aide */
+        .help-tooltip {
+            cursor: help;
+            color: var(--gray-400);
+            margin-left: 0.3rem;
+            font-size: 0.7rem;
+        }
+        .help-tooltip:hover {
+            color: var(--primary);
+        }
+        
+        /* Sections */
+        .section-title { 
+            color: var(--primary); 
+            font-weight: 700; 
+            text-transform: uppercase; 
+            letter-spacing: 2px; 
+            border-bottom: 2px solid var(--gray-200); 
+            padding-bottom: 0.5rem; 
+            margin: 1.5rem 0 1rem 0; 
+        }
+        
+        /* Boutons */
+        .btn-primary-cockpit { 
+            background: var(--gradient); 
+            border: none; 
+            color: white; 
+            font-weight: 700; 
+            padding: 0.9rem 2.5rem; 
+            border-radius: 50px; 
+            font-size: 1rem; 
+            box-shadow: 0 8px 20px rgba(37,99,235,0.25); 
+            transition: all 0.3s; 
+            cursor: pointer; 
+        }
+        .btn-primary-cockpit:hover { 
+            transform: translateY(-2px); 
+            box-shadow: 0 12px 25px rgba(37,99,235,0.35);
+        }
+        .btn-train { 
+            background: var(--gradient-warning); 
+            border: none; 
+            color: white; 
+            font-weight: 700; 
+            padding: 0.7rem 1.8rem; 
+            border-radius: 40px; 
+            cursor: pointer; 
+            transition: all 0.3s;
+        }
+        .btn-train:hover { transform: translateY(-2px); }
+        
+        /* Upload CSV */
+        .upload-area-cockpit { 
+            border: 2px dashed var(--gray-300); 
+            border-radius: 24px; 
+            padding: 2.5rem; 
+            text-align: center; 
+            cursor: pointer; 
+            background: var(--gray-50); 
+            transition: all 0.3s; 
+        }
+        .upload-area-cockpit:hover { 
+            border-color: var(--primary); 
+            background: rgba(37,99,235,0.03); 
+        }
+        
+        /* Résultats */
+        .analysis-hud { 
+            background: var(--gray-50); 
+            border: 1px solid var(--gray-200); 
+            border-radius: 28px; 
+            padding: 2rem; 
+        }
+        .metric-box { 
+            background: white; 
+            border-radius: 20px; 
+            padding: 1.2rem; 
+            text-align: center; 
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            border: 1px solid var(--gray-200);
+        }
+        .metric-value { font-size: 2rem; font-weight: 800; color: var(--gray-800); }
+        
+        /* Alertes */
+        .alert-custom-success { background: linear-gradient(135deg, #ecfdf5, #d1fae5); color: #065f46; border-left: 4px solid var(--success); border-radius: 16px; }
+        .alert-custom-warning { background: linear-gradient(135deg, #fffbeb, #fef3c7); color: #92400e; border-left: 4px solid var(--warning); border-radius: 16px; }
+        .alert-custom-danger { background: linear-gradient(135deg, #fef2f2, #fee2e2); color: #991b1b; border-left: 4px solid var(--danger); border-radius: 16px; }
+        .alert-custom-info { background: linear-gradient(135deg, #eff6ff, #dbeafe); color: #1e40af; border-left: 4px solid var(--info); border-radius: 16px; }
+        
+        /* Spinner */
+        .spinner-custom {
+            width: 48px; height: 48px;
+            border: 4px solid var(--gray-200);
+            border-top: 4px solid var(--primary);
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 1rem auto;
+        }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        /* Badge statut */
+        .status-badge { padding: 0.25rem 1rem; border-radius: 40px; font-weight: 600; font-size: 0.85rem; }
+        .status-critical { background: var(--gradient-danger); color: white; }
+        .status-warning { background: var(--gradient-warning); color: white; }
+        .status-healthy { background: var(--gradient-success); color: white; }
+        
+        /* Animations */
+        @keyframes pulse-hud {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.2); opacity: 0.7; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        .hud-pulse { animation: pulse-hud 1.5s infinite; }
+        
+        @keyframes progressPulse {
+            0% { opacity: 0.6; width: 30%; }
+            50% { opacity: 1; width: 70%; }
+            100% { opacity: 0.6; width: 30%; }
+        }
+        .progress-bar-cockpit { background: var(--gradient); height: 100%; border-radius: 10px; width: 50%; animation: progressPulse 2s infinite; }
+        
+        /* Message d'information */
+        .info-message {
+            background: #eff6ff;
+            border-left: 4px solid var(--info);
+            padding: 1rem;
+            border-radius: 12px;
+            margin-bottom: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+<!-- Navbar avec lien Accueil -->
+<nav class="navbar-cockpit">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-fighter-jet fa-2x me-3" style="color: var(--primary);"></i>
+                <a href="{% url 'accueil' %}" class="nav-brand">AeroPredict Pro</a>
+                <span class="badge ms-3" style="background: var(--gradient); color:white;">v10 LSTM</span>
+            </div>
+            <div class="d-flex flex-wrap mt-2 mt-sm-0">
+                <!-- <a href="/" class="nav-link-cockpit"><i class="fas fa-home me-1"></i>Accueil</a>
+                <a href="/dashboard/" class="nav-link-cockpit"><i class="fas fa-compass me-1"></i>Cockpit</a> -->
+                <a href="/maintenance/test-radar/" class="nav-link-cockpit"><i class="fas fa-satellite-dish me-1"></i>Live Radar</a>
+                <a href="/maintenance/history/" class="nav-link-cockpit"><i class="fas fa-history me-1"></i>Historique</a>
+                <a href="/maintenance/analytics/" class="nav-link-cockpit"><i class="fas fa-chart-line me-1"></i>Analytics</a>
+                <a href="/maintenance/input/" class="nav-link-cockpit active"><i class="fas fa-microchip me-1"></i>Diagnostic</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="row">
+        <div class="col-lg-10 mx-auto">
+            <!-- Message de bienvenue -->
+            <div class="alert alert-custom-info mb-4 animate__animated animate__fadeIn">
+                <i class="fas fa-info-circle me-2"></i>
+                <strong>Bienvenue sur AeroPredict Pro</strong> — Renseignez les données capteurs ou importez un fichier CSV pour obtenir un diagnostic complet de vos moteurs.
+            </div>
+
+            <!-- Mode selector -->
+            <div class="mode-selector">
+                <button class="mode-btn active" data-mode="manual"><i class="fas fa-keyboard me-2"></i>Saisie manuelle</button>
+                <button class="mode-btn" data-mode="upload"><i class="fas fa-cloud-upload-alt me-2"></i>Import CSV</button>
+            </div>
+
+            <div class="card-cockpit">
+                
+                <!-- Mode MANUEL -->
+                <div id="manual-mode">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 style="color: var(--gray-800);"><i class="fas fa-pen me-2" style="color:var(--primary);"></i>Paramètres de vol</h3>
+                        <button class="btn-train" onclick="launchTraining()">
+                            <i class="fas fa-brain me-2"></i>Entraîner le modèle
+                        </button>
+                    </div>
+                    
+                    <!-- Message d'aide -->
+                    <div class="info-message">
+                        <i class="fas fa-lightbulb me-2" style="color: var(--info);"></i>
+                        <strong>Astuce :</strong> Passez la souris sur le <i class="fas fa-question-circle"></i> pour voir la signification de chaque capteur.
+                    </div>
+                    
+                    <form id="analysis-form">
+                        <!-- Identité moteur -->
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <label><i class="fas fa-microchip me-1"></i> ID Moteur</label>
+                                <input type="text" class="form-control-cockpit" id="engine_id" value="CFM56_001" required>
+                            </div>
+                            <div class="col-md-6">
+                                <label><i class="fas fa-chart-line me-1"></i> Cycle</label>
+                                <input type="number" class="form-control-cockpit" id="cycle" value="1" required>
+                            </div>
+                        </div>
+
+                        <!-- Paramètres de vol -->
+                        <div class="section-title"><i class="fas fa-plane me-2"></i> Paramètres de vol</div>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label>Altitude (ft) <i class="fas fa-question-circle help-tooltip" title="Altitude de vol en pieds (0-50000 ft)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="altitude" value="35000">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Mach <i class="fas fa-question-circle help-tooltip" title="Nombre de Mach (vitesse/Vitesse du son)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="mach" value="0.6" step="0.01">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Régime (TRA) <i class="fas fa-question-circle help-tooltip" title="Taux de régime moteur (Throttle Resolver Angle)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="regime" value="100">
+                            </div>
+                        </div>
+
+                        <!-- Capteurs thermiques - NOMS COMPLETS -->
+                        <div class="section-title"><i class="fas fa-thermometer-half me-2"></i> Capteurs thermiques</div>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label>Température entrée LPC <i class="fas fa-question-circle help-tooltip" title="Température à l'entrée du compresseur basse pression"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s2" value="518.67">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Température sortie HPC <i class="fas fa-question-circle help-tooltip" title="Température à la sortie du compresseur haute pression"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s3" value="1589.0">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Température sortie LPT <i class="fas fa-question-circle help-tooltip" title="Température à la sortie de la turbine basse pression"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s4" value="1406.0">
+                            </div>
+                        </div>
+
+                        <!-- Pression et vitesse - NOMS COMPLETS -->
+                        <div class="section-title"><i class="fas fa-tachometer-alt me-2"></i> Pression & Vitesse</div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>Pression sortie HPC <i class="fas fa-question-circle help-tooltip" title="Pression à la sortie du compresseur haute pression"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s7" value="554.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Vitesse Fan <i class="fas fa-question-circle help-tooltip" title="Vitesse physique de la soufflante (Fan)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s8" value="2388.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Vitesse Core <i class="fas fa-question-circle help-tooltip" title="Vitesse physique du noyau moteur (Core)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s9" value="9064.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Pression sortie LPT <i class="fas fa-question-circle help-tooltip" title="Pression à la sortie de la turbine basse pression"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s11" value="47.0">
+                            </div>
+                        </div>
+                        <div class="row mb-3">
+                            <div class="col-md-3">
+                                <label>Vitesse sortie HPC <i class="fas fa-question-circle help-tooltip" title="Vitesse à la sortie du compresseur HP"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s12" value="522.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Vitesse sortie LPC <i class="fas fa-question-circle help-tooltip" title="Vitesse à la sortie du compresseur BP"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s13" value="2388.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Vitesse Bypass <i class="fas fa-question-circle help-tooltip" title="Vitesse du flux secondaire (Bypass)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s14" value="8143.0">
+                            </div>
+                            <div class="col-md-3">
+                                <label>Pression bouchon <i class="fas fa-question-circle help-tooltip" title="Pression mesurée au niveau du bouchon"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s15" value="8.4">
+                            </div>
+                        </div>
+                        <div class="row mb-4">
+                            <div class="col-md-4">
+                                <label>Vitesse rotation HPC <i class="fas fa-question-circle help-tooltip" title="Vitesse de rotation du compresseur HP"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s17" value="392.0">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Rapport pression HPC <i class="fas fa-question-circle help-tooltip" title="Rapport de pression du compresseur HP (critique pour détection pompage)"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s20" value="39.0">
+                            </div>
+                            <div class="col-md-4">
+                                <label>Pression entrée Fan <i class="fas fa-question-circle help-tooltip" title="Pression à l'entrée de la soufflante"></i></label>
+                                <input type="number" class="form-control-cockpit" id="s21" value="23.0">
+                            </div>
+                        </div>
+
+                        <!-- Actions -->
+                        <div class="d-flex justify-content-between mt-3">
+                            <button type="button" class="btn btn-outline-secondary btn-sm" onclick="resetForm()">
+                                <i class="fas fa-undo me-1"></i>Réinitialiser
+                            </button>
+                            <button type="submit" class="btn-primary-cockpit" id="submit-btn">
+                                <i class="fas fa-play me-2"></i>Lancer le diagnostic
+                            </button>
+                        </div>
+                    </form>
+                </div>
+
+                <!-- Mode CSV -->
+                <div id="upload-mode" style="display:none;">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h3 style="color: var(--gray-800);"><i class="fas fa-file-csv me-2" style="color:var(--primary);"></i>Import CSV</h3>
+                        <button class="btn-train" onclick="launchTrainingFromCSV()">
+                            <i class="fas fa-brain me-2"></i>Entraîner depuis CSV
+                        </button>
+                    </div>
+
+                    <div class="upload-area-cockpit" id="upload-area">
+                        <i class="fas fa-cloud-upload-alt fa-3x mb-3" style="color: var(--primary);"></i>
+                        <p class="mb-2"><strong>Glissez-déposez votre fichier CSV</strong></p>
+                        <p class="text-muted small">Format attendu: engine_id, cycle, altitude, mach, regime, s2-s21, rul</p>
+                        <input type="file" id="csv-file" accept=".csv" style="display:none;">
+                        <button class="btn btn-outline-primary btn-sm me-2" onclick="document.getElementById('csv-file').click()">
+                            <i class="fas fa-folder-open me-1"></i>Parcourir
+                        </button>
+                        <button class="btn btn-outline-secondary btn-sm" onclick="downloadTemplate()">
+                            <i class="fas fa-download me-1"></i>Télécharger template
+                        </button>
+                    </div>
+
+                    <div id="csv-preview" class="mt-4" style="display:none;">
+                        <h6><i class="fas fa-eye me-1"></i> Aperçu des données</h6>
+                        <div class="table-responsive">
+                            <table class="table table-sm table-bordered" id="preview-table">
+                                <thead><tr><th>...</th></tr></thead>
+                                <tbody></tbody>
+                            </table>
+                        </div>
+                        <button class="btn-primary-cockpit mt-3" id="upload-submit-btn">
+                            <i class="fas fa-chart-line me-2"></i>Analyser le fichier
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Zone de résultats -->
+                <div id="result-container" style="display:none;"></div>
+                <div id="loading-spinner" style="display:none;" class="text-center py-5">
+                    <div class="spinner-custom"></div>
+                    <p class="mt-3 text-muted">Analyse en cours... cela peut prendre quelques secondes.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+// ============================================================
+// VARIABLES GLOBALES
+// ============================================================
+let currentMode = 'manual';
+let pollingTimer = null;
+let csvData = [];
+let currentTaskId = null;
+const form = document.getElementById('analysis-form');
+const submitBtn = document.getElementById('submit-btn');
+const spinner = document.getElementById('loading-spinner');
+const resultContainer = document.getElementById('result-container');
+const manualMode = document.getElementById('manual-mode');
+const uploadMode = document.getElementById('upload-mode');
+const uploadSubmitBtn = document.getElementById('upload-submit-btn');
+
+// ============================================================
+// SWITCH MODE
+// ============================================================
+document.querySelectorAll('.mode-btn').forEach(btn => {
+    btn.addEventListener('click', function() {
+        document.querySelectorAll('.mode-btn').forEach(x => x.classList.remove('active'));
+        this.classList.add('active');
+        currentMode = this.dataset.mode;
+        
+        if (currentMode === 'manual') {
+            manualMode.style.display = 'block';
+            uploadMode.style.display = 'none';
+        } else {
+            manualMode.style.display = 'none';
+            uploadMode.style.display = 'block';
+        }
+        
+        resultContainer.style.display = 'none';
+        if (pollingTimer) clearTimeout(pollingTimer);
+    });
+});
+
+// ============================================================
+// RÉINITIALISATION FORMULAIRE
+// ============================================================
+function resetForm() {
+    document.getElementById('engine_id').value = 'CFM56_001';
+    document.getElementById('cycle').value = '1';
+    document.getElementById('altitude').value = '35000';
+    document.getElementById('mach').value = '0.6';
+    document.getElementById('regime').value = '100';
+    document.getElementById('s2').value = '518.67';
+    document.getElementById('s3').value = '1589.0';
+    document.getElementById('s4').value = '1406.0';
+    document.getElementById('s7').value = '554.0';
+    document.getElementById('s8').value = '2388.0';
+    document.getElementById('s9').value = '9064.0';
+    document.getElementById('s11').value = '47.0';
+    document.getElementById('s12').value = '522.0';
+    document.getElementById('s13').value = '2388.0';
+    document.getElementById('s14').value = '8143.0';
+    document.getElementById('s15').value = '8.4';
+    document.getElementById('s17').value = '392.0';
+    document.getElementById('s20').value = '39.0';
+    document.getElementById('s21').value = '23.0';
+}
+
+// ============================================================
+// GESTION CSV
+// ============================================================
+const uploadArea = document.getElementById('upload-area');
+const csvFile = document.getElementById('csv-file');
+const csvPreview = document.getElementById('csv-preview');
+const previewTable = document.getElementById('preview-table');
+
+uploadArea.addEventListener('click', () => csvFile.click());
+uploadArea.addEventListener('dragover', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--primary)';
+    uploadArea.style.background = 'rgba(37,99,235,0.05)';
+});
+uploadArea.addEventListener('dragleave', () => {
+    uploadArea.style.borderColor = 'var(--gray-300)';
+    uploadArea.style.background = 'var(--gray-50)';
+});
+uploadArea.addEventListener('drop', e => {
+    e.preventDefault();
+    uploadArea.style.borderColor = 'var(--gray-300)';
+    uploadArea.style.background = 'var(--gray-50)';
+    const file = e.dataTransfer.files[0];
+    if (file) parseCSV(file);
+});
+
+csvFile.addEventListener('change', e => {
+    const file = e.target.files[0];
+    if (file) parseCSV(file);
+});
+
+function parseCSV(file) {
+    Papa.parse(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: results => {
+            csvData = results.data;
+            showPreview(csvData);
+        },
+        error: err => {
+            showError('Erreur de lecture CSV: ' + err.message);
+        }
+    });
+}
+
+function showPreview(data) {
+    if (!data || !data.length) return;
+    const headers = Object.keys(data[0]);
+    let html = '<thead><tr>' + headers.map(h => `<th>${h}</th>`).join('') + '<tr></thead><tbody>';
+    data.slice(0, 5).forEach(row => {
+        html += '<tr>' + headers.map(h => `<td>${row[h] || ''}</td>`).join('') + '</tr>';
+    });
+    html += '</tbody>';
+    previewTable.innerHTML = html;
+    csvPreview.style.display = 'block';
+}
+
+function downloadTemplate() {
+    const csv = 'engine_id,cycle,altitude,mach,regime,Temp_Entree_LPC,Temp_Sortie_HPC,Temp_Sortie_LPT,Pression_Sortie_HPC,Vitesse_Fan,Vitesse_Core,Pression_Sortie_LPT,Vitesse_Sortie_HPC,Vitesse_Sortie_LPC,Vitesse_Bypass,Pression_Bouchon,Vitesse_Rotation_HPC,Rapport_Pression_HPC,Pression_Entree_Fan,rul\nCFM56_001,1,35000,0.6,100,518.67,1589.0,1406.0,554.0,2388.0,9064.0,47.0,522.0,2388.0,8143.0,8.4,392.0,39.0,23.0,125';
+    const blob = new Blob([csv], { type: 'text/csv' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'template_aeropredict.csv';
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ============================================================
+// CONSTRUCTION DES DONNÉES CAPTEURS
+// ============================================================
+function buildSensorData(data) {
+    return {
+        engine_id: data.engine_id,
+        altitude: parseFloat(data.altitude) || 35000,
+        mach: parseFloat(data.mach) || 0.6,
+        regime: parseFloat(data.regime) || 100,
+        cycle: parseInt(data.cycle) || 1,
+        s2: parseFloat(data.Temp_Entree_LPC || data.s2 || 518.67),
+        s3: parseFloat(data.Temp_Sortie_HPC || data.s3 || 1589.0),
+        s4: parseFloat(data.Temp_Sortie_LPT || data.s4 || 1406.0),
+        s7: parseFloat(data.Pression_Sortie_HPC || data.s7 || 554.0),
+        s8: parseFloat(data.Vitesse_Fan || data.s8 || 2388.0),
+        s9: parseFloat(data.Vitesse_Core || data.s9 || 9064.0),
+        s11: parseFloat(data.Pression_Sortie_LPT || data.s11 || 47.0),
+        s12: parseFloat(data.Vitesse_Sortie_HPC || data.s12 || 522.0),
+        s13: parseFloat(data.Vitesse_Sortie_LPC || data.s13 || 2388.0),
+        s14: parseFloat(data.Vitesse_Bypass || data.s14 || 8143.0),
+        s15: parseFloat(data.Pression_Bouchon || data.s15 || 8.4),
+        s17: parseFloat(data.Vitesse_Rotation_HPC || data.s17 || 392.0),
+        s20: parseFloat(data.Rapport_Pression_HPC || data.s20 || 39.0),
+        s21: parseFloat(data.Pression_Entree_Fan || data.s21 || 23.0)
+    };
+}
+
+// ============================================================
+// SOUMISSION DIAGNOSTIC
+// ============================================================
+form.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const sensorData = buildSensorData({
+        engine_id: document.getElementById('engine_id').value,
+        cycle: document.getElementById('cycle').value,
+        altitude: document.getElementById('altitude').value,
+        mach: document.getElementById('mach').value,
+        regime: document.getElementById('regime').value,
+        Temp_Entree_LPC: document.getElementById('s2').value,
+        Temp_Sortie_HPC: document.getElementById('s3').value,
+        Temp_Sortie_LPT: document.getElementById('s4').value,
+        Pression_Sortie_HPC: document.getElementById('s7').value,
+        Vitesse_Fan: document.getElementById('s8').value,
+        Vitesse_Core: document.getElementById('s9').value,
+        Pression_Sortie_LPT: document.getElementById('s11').value,
+        Vitesse_Sortie_HPC: document.getElementById('s12').value,
+        Vitesse_Sortie_LPC: document.getElementById('s13').value,
+        Vitesse_Bypass: document.getElementById('s14').value,
+        Pression_Bouchon: document.getElementById('s15').value,
+        Vitesse_Rotation_HPC: document.getElementById('s17').value,
+        Rapport_Pression_HPC: document.getElementById('s20').value,
+        Pression_Entree_Fan: document.getElementById('s21').value
+    });
+    await submitAnalysis(sensorData);
+});
+
+uploadSubmitBtn.addEventListener('click', async () => {
+    if (!csvData.length) {
+        showError('Aucune donnée CSV chargée.');
+        return;
+    }
+    const sensorData = buildSensorData(csvData[0]);
+    await submitAnalysis(sensorData);
+});
+
+async function submitAnalysis(sensorData) {
+    if (pollingTimer) clearTimeout(pollingTimer);
+    
+    submitBtn.disabled = true;
+    if (uploadSubmitBtn) uploadSubmitBtn.disabled = true;
+    submitBtn.style.opacity = '0.6';
+    spinner.style.display = 'block';
+    resultContainer.style.display = 'none';
+    
+    try {
+        const response = await fetch('/maintenance/api/predict/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(sensorData)
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            showHUDPending(data.task_id);
+            startPolling(data.task_id);
+        } else {
+            showError(data.error || 'Erreur lors de l\'analyse');
+        }
+    } catch (error) {
+        showError('Erreur de connexion: ' + error.message);
+    } finally {
+        submitBtn.disabled = false;
+        if (uploadSubmitBtn) uploadSubmitBtn.disabled = false;
+        submitBtn.style.opacity = '1';
+        spinner.style.display = 'none';
+    }
+}
+
+function showHUDPending(taskId) {
+    currentTaskId = taskId;
+    resultContainer.innerHTML = `
+        <div class="analysis-hud text-center">
+            <div class="hud-pulse" style="width: 20px; height: 20px; background: var(--primary); border-radius: 50%; margin: 0 auto 1rem auto;"></div>
+            <h4 class="mb-2">🧠 Diagnostic en cours</h4>
+            <p class="text-muted mb-3">Le modèle LSTM analyse vos données capteurs...</p>
+            <p class="small text-info"><i class="fas fa-info-circle me-1"></i>Cette opération peut prendre jusqu'à 30 secondes</p>
+            <div class="progress" style="height: 8px; border-radius: 10px; background: var(--gray-200); width: 70%; margin: 0 auto;">
+                <div class="progress-bar" style="width: 50%; background: var(--gradient); animation: progressPulse 1.5s infinite;"></div>
+            </div>
+            <p id="polling-status" class="mt-3 small text-muted">
+                <i class="fas fa-sync-alt fa-spin me-1"></i>Initialisation...
+            </p>
+            <button class="btn btn-outline-secondary btn-sm mt-3" onclick="cancelAnalysis()">
+                <i class="fas fa-times me-1"></i>Annuler
+            </button>
+        </div>
+    `;
+    resultContainer.style.display = 'block';
+}
+
+let attempts = 0;
+const MAX_ATTEMPTS = 180;
+
+function startPolling(taskId) {
+    attempts = 0;
+    const poll = async () => {
+        attempts++;
+        try {
+            const response = await fetch(`/maintenance/api/task/${taskId}/status/`);
+            const data = await response.json();
+            const statusEl = document.getElementById('polling-status');
+            
+            if (statusEl) {
+                statusEl.innerHTML = `<i class="fas fa-sync-alt fa-spin me-1"></i>${data.message || data.status} (${attempts}/${MAX_ATTEMPTS})`;
+            }
+            
+            if (data.status === 'SUCCESS') {
+                showResult(data.result || data);
+            } else if (data.status === 'FAILURE') {
+                showError(data.error || 'Échec de l\'analyse');
+            } else if (attempts < MAX_ATTEMPTS) {
+                pollingTimer = setTimeout(poll, 3000);
+            } else {
+                showTimeout();
+            }
+        } catch (error) {
+            if (attempts < 5) {
+                pollingTimer = setTimeout(poll, 3000);
+            } else {
+                showError('Connexion perdue avec le serveur');
+            }
+        }
+    };
+    pollingTimer = setTimeout(poll, 2000);
+}
+function showResult(data) {
+    const result = data.result || data;
+    
+    const rul = result.rul || result.ai_prediction?.predicted_rul || 125;
+    const diagnosis = result.diagnosis || {};
+    const anomalyCount = result.anomalies_count || 0;
+    
+    // 🔥 CORRECTION : Calculer le risque correctement (pas 100% fixe)
+    const healthScore = Math.min(100, Math.max(0, (rul / 125) * 100));
+    const riskScore = Math.min(100, Math.max(0, 100 - healthScore));
+   
+    let statusText = '', statusClass = '', alertClass = '', message = '', emoji = '';
+    
+    if (rul <= 25) {
+        statusText = 'CRITIQUE'; statusClass = 'status-critical'; alertClass = 'alert-custom-danger'; emoji = '🔴';
+        message = `⚠️ PANNE IMMINENTE ! RUL = ${Math.round(rul)} cycles. Intervention immédiate requise.`;
+    } else if (rul <= 50) {
+        statusText = 'ATTENTION'; statusClass = 'status-warning'; alertClass = 'alert-custom-warning'; emoji = '🟠';
+        message = `🟠 DÉGRADATION DÉTECTÉE — RUL = ${Math.round(rul)} cycles. Planifiez une maintenance urgente.`;
+    } else if (rul <= 90) {
+        statusText = 'DÉGRADÉ'; statusClass = 'status-warning'; alertClass = 'alert-custom-info'; emoji = '🟡';
+        message = `🟡 SURVEILLANCE — RUL = ${Math.round(rul)} cycles. Le moteur montre des signes de vieillissement.`;
+    } else {
+        statusText = 'SAIN'; statusClass = 'status-healthy'; alertClass = 'alert-custom-success'; emoji = '🟢';
+        message = `🟢 MOTEUR SAIN — RUL = ${Math.round(rul)} cycles. Aucune action immédiate requise.`;
+    }
+    
+    resultContainer.innerHTML = `
+        <div class="analysis-hud">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0"><i class="fas fa-chart-line me-2" style="color: var(--primary);"></i>Rapport de diagnostic</h4>
+                <span class="status-badge ${statusClass}">${emoji} ${statusText}</span>
+            </div>
+            
+            <div class="alert ${alertClass} mb-4">
+                <i class="fas fa-${rul <= 25 ? 'exclamation-triangle' : (rul <= 50 ? 'bell' : 'info-circle')} me-2"></i>
+                ${message}
+            </div>
+            
+            <div class="row g-3 mb-4">
+                <div class="col-6 col-md-3">
+                    <div class="metric-box">
+                        <div class="metric-value" style="color: var(--primary);">${Math.round(rul)}</div>
+                        <div class="text-muted small">RUL (cycles)</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-box">
+                        <div class="metric-value" style="color: var(--success);">${Math.round(healthScore)}%</div>
+                        <div class="text-muted small">Santé moteur</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-box">
+                        <div class="metric-value" style="color: var(--warning);">${Math.round(riskScore)}%</div>
+                        <div class="text-muted small">Risque défaillance</div>
+                    </div>
+                </div>
+                <div class="col-6 col-md-3">
+                    <div class="metric-box">
+                        <div class="metric-value" style="color: ${anomalyCount > 0 ? 'var(--danger)' : 'var(--success)'};">${anomalyCount}</div>
+                        <div class="text-muted small">Anomalies détectées</div>
+                    </div>
+                </div>
+            </div>
+            
+            ${diagnosis.summary && !diagnosis.summary.includes('RISQUE') ? `
+            <div class="alert alert-info bg-light border-0 mb-3">
+                <i class="fas fa-clipboard-list me-2" style="color: var(--primary);"></i>
+                <strong>Analyse IA</strong><br>${diagnosis.summary}
+            </div>
+            ` : ''}
+            
+            ${diagnosis.causes && diagnosis.causes.length ? `
+            <div class="mb-3">
+                <strong><i class="fas fa-search me-1"></i> Causes probables</strong>
+                <ul class="mt-2">
+                    ${diagnosis.causes.slice(0,4).map(c => `<li>${c}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            
+            ${diagnosis.actions && diagnosis.actions.length ? `
+            <div class="mb-3">
+                <strong><i class="fas fa-wrench me-1"></i> Actions recommandées</strong>
+                <ul class="mt-2">
+                    ${diagnosis.actions.slice(0,4).map(a => `<li>${a}</li>`).join('')}
+                </ul>
+            </div>
+            ` : ''}
+            
+            <div class="d-flex gap-2 mt-4">
+                <a href="/maintenance/test-radar/" class="btn btn-primary">
+                    <i class="fas fa-radar me-1"></i> Voir sur le Live Radar
+                </a>
+                <button class="btn btn-outline-secondary" onclick="downloadResult()">
+                    <i class="fas fa-download me-1"></i> Exporter JSON
+                </button>
+                <button class="btn btn-outline-secondary" onclick="resetAndNew()">
+                    <i class="fas fa-plus me-1"></i> Nouvelle analyse
+                </button>
+            </div>
+        </div>
+    `;
+    window.lastResult = result;
+}
+
+function showError(message) {
+    resultContainer.innerHTML = `
+        <div class="analysis-hud text-center">
+            <i class="fas fa-exclamation-triangle fa-3x mb-3" style="color: var(--danger);"></i>
+            <h5 class="mb-2">❌ Analyse échouée</h5>
+            <p class="text-muted">${message}</p>
+            <button class="btn btn-outline-primary mt-3" onclick="resetAndNew()">
+                <i class="fas fa-redo me-1"></i> Réessayer
+            </button>
+        </div>
+    `;
+    resultContainer.style.display = 'block';
+}
+
+function showTimeout() {
+    resultContainer.innerHTML = `
+        <div class="analysis-hud text-center">
+            <i class="fas fa-clock fa-3x mb-3" style="color: var(--warning);"></i>
+            <h5 class="mb-2">⏳ Analyse prolongée</h5>
+            <p class="text-muted">Le diagnostic prend plus de temps que prévu.</p>
+            <button class="btn btn-outline-primary mt-2" onclick="checkStatusAgain()">
+                <i class="fas fa-sync-alt me-1"></i> Vérifier à nouveau
+            </button>
+        </div>
+    `;
+    resultContainer.style.display = 'block';
+}
+
+function checkStatusAgain() {
+    if (currentTaskId) {
+        startPolling(currentTaskId);
+    }
+}
+
+function cancelAnalysis() {
+    if (pollingTimer) clearTimeout(pollingTimer);
+    resultContainer.style.display = 'none';
+    currentTaskId = null;
+}
+
+function resetAndNew() {
+    if (pollingTimer) clearTimeout(pollingTimer);
+    resultContainer.style.display = 'none';
+    if (currentMode === 'manual') resetForm();
+}
+
+function downloadResult() {
+    if (!window.lastResult) return;
+    const blob = new Blob([JSON.stringify(window.lastResult, null, 2)], { type: 'application/json' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = `diagnostic_${window.lastResult.engine_id || 'result'}_${new Date().toISOString().slice(0,19)}.json`;
+    a.click();
+    URL.revokeObjectURL(a.href);
+}
+
+// ============================================================
+// ENTRAÎNEMENT
+// ============================================================
+function getTrainingDataFromForm() {
+    return [{
+        engine_id: document.getElementById('engine_id').value,
+        cycle: parseInt(document.getElementById('cycle').value) || 1,
+        rul: 125,
+        Altitude: parseFloat(document.getElementById('altitude').value) || 35000,
+        Mach: parseFloat(document.getElementById('mach').value) || 0.6,
+        Regime: parseFloat(document.getElementById('regime').value) || 100,
+        Temp_Entree_LPC: parseFloat(document.getElementById('s2').value) || 518.67,
+        Temp_Sortie_HPC: parseFloat(document.getElementById('s3').value) || 1589.0,
+        Temp_Sortie_LPT: parseFloat(document.getElementById('s4').value) || 1406.0,
+        Pression_Sortie_HPC: parseFloat(document.getElementById('s7').value) || 554.0,
+        Vitesse_Fan: parseFloat(document.getElementById('s8').value) || 2388.0,
+        Vitesse_Core: parseFloat(document.getElementById('s9').value) || 9064.0,
+        Pression_Sortie_LPT: parseFloat(document.getElementById('s11').value) || 47.0,
+        Vitesse_Sortie_HPC: parseFloat(document.getElementById('s12').value) || 522.0,
+        Vitesse_Sortie_LPC: parseFloat(document.getElementById('s13').value) || 2388.0,
+        Vitesse_Bypass: parseFloat(document.getElementById('s14').value) || 8143.0,
+        Pression_Bouchon: parseFloat(document.getElementById('s15').value) || 8.4,
+        Vitesse_Rotation_HPC: parseFloat(document.getElementById('s17').value) || 392.0,
+        Rapport_Pression_HPC: parseFloat(document.getElementById('s20').value) || 39.0,
+        Pression_Entree_Fan: parseFloat(document.getElementById('s21').value) || 23.0
+    }];
+}
+
+async function launchTrainingWithData(trainingData) {
+    const n = trainingData.length;
+    const est = n < 10 ? 'qq secondes' : (n < 50 ? '30-60s' : (n < 200 ? '1-2 min' : '3-5 min'));
+    
+    resultContainer.innerHTML = `
+        <div class="analysis-hud text-center">
+            <div class="spinner-custom" style="border-top-color: var(--warning);"></div>
+            <h4 class="mt-3">🔥 Entraînement LSTM en cours</h4>
+            <p class="text-muted">${n} cycles d'entraînement • Durée estimée : ${est}</p>
+            <p class="small text-info mt-2"><i class="fas fa-info-circle me-1"></i>Cette opération peut prendre jusqu'à 30 minutes selon la taille des données</p>
+            <div class="progress mt-3" style="height: 8px; border-radius: 10px; background: var(--gray-200); width: 80%; margin: 0 auto;">
+                <div class="progress-bar progress-bar-striped progress-bar-animated" style="width: 100%; background: var(--gradient-warning);"></div>
+            </div>
+            <p id="training-status" class="mt-3 small text-muted">
+                <i class="fas fa-sync-alt fa-spin me-1"></i>Initialisation...
+            </p>
+            <p class="small text-secondary mt-2">Vous pouvez fermer cette page, l'entraînement continue en arrière-plan.</p>
+        </div>
+    `;
+    resultContainer.style.display = 'block';
+    
+    try {
+        const response = await fetch('/maintenance/api/train/', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ training_data: trainingData, epochs: 10 })
+        });
+        const data = await response.json();
+        
+        if (data.success) {
+            pollTrainingStatus(data.task_id);
+        } else {
+            showError(data.error || 'Erreur lors de l\'entraînement');
+        }
+    } catch (error) {
+        showError('Erreur: ' + error.message);
+    }
+}
+
+function launchTraining() {
+    const confirmMsg = confirm("⚠️ L'entraînement du modèle peut prendre plusieurs minutes. Voulez-vous continuer ?");
+    if (confirmMsg) {
+        launchTrainingWithData(getTrainingDataFromForm());
+    }
+}
+
+function launchTrainingFromCSV() {
+    if (!csvData.length) {
+        showError('Veuillez d\'abord charger un fichier CSV');
+        return;
+    }
+    const confirmMsg = confirm(`⚠️ L'entraînement va analyser ${csvData.length} cycles. Cela peut prendre plusieurs minutes. Voulez-vous continuer ?`);
+    if (confirmMsg) {
+        const trainingData = csvData.map(row => ({
+            engine_id: row.engine_id || 'CSV',
+            cycle: parseInt(row.cycle) || 1,
+            rul: parseFloat(row.rul) || 125,
+            Altitude: parseFloat(row.altitude) || 35000,
+            Mach: parseFloat(row.mach) || 0.6,
+            Regime: parseFloat(row.regime) || 100,
+            Temp_Entree_LPC: parseFloat(row.Temp_Entree_LPC || row.s2 || 518.67),
+            Temp_Sortie_HPC: parseFloat(row.Temp_Sortie_HPC || row.s3 || 1589.0),
+            Temp_Sortie_LPT: parseFloat(row.Temp_Sortie_LPT || row.s4 || 1406.0),
+            Pression_Sortie_HPC: parseFloat(row.Pression_Sortie_HPC || row.s7 || 554.0),
+            Vitesse_Fan: parseFloat(row.Vitesse_Fan || row.s8 || 2388.0),
+            Vitesse_Core: parseFloat(row.Vitesse_Core || row.s9 || 9064.0),
+            Pression_Sortie_LPT: parseFloat(row.Pression_Sortie_LPT || row.s11 || 47.0),
+            Vitesse_Sortie_HPC: parseFloat(row.Vitesse_Sortie_HPC || row.s12 || 522.0),
+            Vitesse_Sortie_LPC: parseFloat(row.Vitesse_Sortie_LPC || row.s13 || 2388.0),
+            Vitesse_Bypass: parseFloat(row.Vitesse_Bypass || row.s14 || 8143.0),
+            Pression_Bouchon: parseFloat(row.Pression_Bouchon || row.s15 || 8.4),
+            Vitesse_Rotation_HPC: parseFloat(row.Vitesse_Rotation_HPC || row.s17 || 392.0),
+            Rapport_Pression_HPC: parseFloat(row.Rapport_Pression_HPC || row.s20 || 39.0),
+            Pression_Entree_Fan: parseFloat(row.Pression_Entree_Fan || row.s21 || 23.0)
+        }));
+        launchTrainingWithData(trainingData);
+    }
+}
+
+async function pollTrainingStatus(taskId) {
+    let attempts = 0;
+    const poll = async () => {
+        attempts++;
+        try {
+            const response = await fetch(`/maintenance/api/train/${taskId}/status/`);
+            const data = await response.json();
+            const statusEl = document.getElementById('training-status');
+            
+            if (data.status === 'SUCCESS') {
+                const result = data.result || {};
+                resultContainer.innerHTML = `
+                    <div class="analysis-hud text-center">
+                        <i class="fas fa-check-circle fa-3x mb-3" style="color: var(--success);"></i>
+                        <h4>✅ Entraînement terminé !</h4>
+                        <div class="row mt-4 mb-4">
+                            <div class="col-6">
+                                <div class="metric-box">
+                                    <div class="metric-value" style="color: var(--primary);">${result.global_score || '--'}</div>
+                                    <div class="text-muted">Score /100</div>
+                                </div>
+                            </div>
+                            <div class="col-6">
+                                <div class="metric-box">
+                                    <div class="metric-value" style="color: var(--warning);">${result.performance_level || '--'}</div>
+                                    <div class="text-muted">Performance</div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="alert alert-custom-success">
+                            <i class="fas fa-info-circle me-2"></i>${result.message || 'Modèle mis à jour avec succès'}
+                        </div>
+                        ${result.predicted_rul ? `
+                        <div class="alert alert-info mt-3">
+                            <i class="fas fa-chart-line me-2"></i>
+                            <strong>Prédiction sur vos données :</strong> RUL = ${Math.round(result.predicted_rul)} cycles
+                            ${result.health_status ? `<span class="badge ${result.health_status === 'CRITICAL' ? 'bg-danger' : (result.health_status === 'WARNING' ? 'bg-warning' : 'bg-success')} ms-2">${result.health_status}</span>` : ''}
+                        </div>
+                        ` : ''}
+                        <div class="d-flex gap-2 justify-content-center mt-3">
+                            <a href="/maintenance/test-radar/" class="btn btn-primary">
+                                <i class="fas fa-radar me-1"></i> Voir le Live Radar
+                            </a>
+                            <button class="btn btn-outline-secondary" onclick="resetAndNew()">OK</button>
+                        </div>
+                    </div>
+                `;
+            } else if (data.status === 'FAILURE') {
+                showError(data.error || 'Échec de l\'entraînement');
+            } else if (attempts < 180) {
+                if (statusEl) {
+                    statusEl.innerHTML = `<i class="fas fa-sync-alt fa-spin me-1"></i>${data.message || data.status} (${attempts}/180)`;
+                }
+                setTimeout(poll, 5000);
+            } else {
+                resultContainer.innerHTML = `
+                    <div class="analysis-hud text-center">
+                        <i class="fas fa-clock fa-3x mb-3" style="color: var(--warning);"></i>
+                        <h5>⏳ Entraînement prolongé</h5>
+                        <p class="text-muted">L'entraînement continue en arrière-plan.</p>
+                        <p class="small">Vous serez notifié par email une fois terminé.</p>
+                        <button class="btn btn-outline-primary mt-2" onclick="window.location.reload()">
+                            <i class="fas fa-sync-alt me-1"></i> Rafraîchir
+                        </button>
+                    </div>
+                `;
+            }
+        } catch (error) {
+            setTimeout(poll, 5000);
+        }
+    };
+    setTimeout(poll, 3000);
+}
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

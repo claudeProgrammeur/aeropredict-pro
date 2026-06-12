@@ -1,0 +1,15 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Page d'accueille</title>
+</head>
+<body>
+    
+    <div>
+        celery -A aeronoth worker -l info -P solo -Q celery,engine_analysis
+        daphne -b 0.0.0.0 -p 8000 aeronoth.asgi:application
+    </div>
+</body>
+</html>

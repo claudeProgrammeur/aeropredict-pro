@@ -1,0 +1,1343 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroPredict Pro | Analytics Cockpit</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            /* Palette principale */
+            --primary: #3b82f6;
+            --primary-glow: rgba(59, 130, 246, 0.4);
+            --secondary: #8b5cf6;
+            --accent: #f59e0b;
+            --danger: #ef4444;
+            --warning: #f97316;
+            --success: #10b981;
+            --info: #06b6d4;
+            
+            /* Backgrounds */
+            --bg-dark: #0a0e17;
+            --bg-card: rgba(18, 24, 36, 0.85);
+            --bg-card-hover: rgba(30, 41, 59, 0.95);
+            --border-subtle: rgba(59, 130, 246, 0.15);
+            --border-focus: rgba(59, 130, 246, 0.5);
+            
+            /* Texte */
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --text-muted: #64748b;
+            
+            /* Effets */
+            --glow-primary: 0 0 20px var(--primary-glow);
+            --glow-danger: 0 0 20px rgba(239, 68, 68, 0.4);
+            --glow-success: 0 0 20px rgba(16, 185, 129, 0.4);
+            --gradient-main: linear-gradient(135deg, #3b82f6 0%, #8b5cf6 50%, #06b6d4 100%);
+            --gradient-card: linear-gradient(145deg, rgba(30,41,59,0.9), rgba(18,24,36,0.95));
+            
+            /* Animations */
+            --transition-fast: 150ms ease;
+            --transition-normal: 300ms ease;
+            --transition-slow: 500ms ease;
+        }
+        
+        /* ===== BASE ===== */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        html { scroll-behavior: smooth; }
+        
+        body {
+            background: 
+                radial-gradient(ellipse at top, rgba(59,130,246,0.15) 0%, transparent 50%),
+                radial-gradient(ellipse at bottom right, rgba(139,92,246,0.1) 0%, transparent 50%),
+                var(--bg-dark);
+            min-height: 100vh;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+        
+        /* Grid animé en arrière-plan */
+        body::before {
+            content: '';
+            position: fixed;
+            inset: 0;
+            background: 
+                linear-gradient(rgba(59,130,246,0.03) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(59,130,246,0.03) 1px, transparent 1px);
+            background-size: 50px 50px;
+            animation: gridMove 20s linear infinite;
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        @keyframes gridMove {
+            0% { transform: perspective(500px) rotateX(60deg) translateY(0); }
+            100% { transform: perspective(500px) rotateX(60deg) translateY(50px); }
+        }
+        
+        /* Particules flottantes */
+        .particles {
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            z-index: -1;
+            overflow: hidden;
+        }
+        .particle {
+            position: absolute;
+            width: 4px; height: 4px;
+            background: var(--primary);
+            border-radius: 50%;
+            opacity: 0.3;
+            animation: float 15s infinite ease-in-out;
+        }
+        .particle:nth-child(odd) { background: var(--secondary); animation-duration: 18s; }
+        .particle:nth-child(3n) { background: var(--accent); animation-duration: 22s; }
+        @keyframes float {
+            0%, 100% { transform: translateY(100vh) rotate(0deg); opacity: 0; }
+            10% { opacity: 0.3; }
+            90% { opacity: 0.3; }
+            100% { transform: translateY(-100px) rotate(720deg); opacity: 0; }
+        }
+        
+        /* ===== NAVBAR ===== */
+        .navbar-cockpit {
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border-subtle);
+            padding: 0.75rem 0;
+            transition: all var(--transition-normal);
+        }
+        .navbar-cockpit.scrolled {
+            padding: 0.5rem 0;
+            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .nav-brand {
+            font-size: 1.75rem;
+            font-weight: 800;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-brand i {
+            filter: drop-shadow(0 0 10px var(--primary-glow));
+        }
+        
+        .nav-link-cockpit {
+            color: var(--text-secondary) !important;
+            padding: 0.6rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all var(--transition-fast);
+            position: relative;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .nav-link-cockpit::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            border-radius: 50px;
+            background: var(--gradient-main);
+            opacity: 0;
+            transition: opacity var(--transition-fast);
+            z-index: -1;
+        }
+        .nav-link-cockpit:hover {
+            color: var(--text-primary) !important;
+            transform: translateY(-1px);
+        }
+        .nav-link-cockpit:hover::before { opacity: 0.15; }
+        .nav-link-cockpit.active {
+            color: white !important;
+            background: var(--gradient-main);
+            box-shadow: var(--glow-primary);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -4px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.7rem;
+            font-weight: 600;
+            padding: 0.2rem 0.5rem;
+            border-radius: 50px;
+            min-width: 20px;
+            text-align: center;
+            animation: pulse 2s infinite, bounce 0.5s ease;
+            box-shadow: 0 0 10px rgba(239, 68, 68, 0.5);
+        }
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); box-shadow: 0 0 10px rgba(239,68,68,0.5); }
+            50% { transform: scale(1.15); box-shadow: 0 0 20px rgba(239,68,68,0.8); }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.3); }
+        }
+        
+        /* ===== CONTAINER PRINCIPAL ===== */
+        .container-fluid { padding: 0 1.5rem; }
+        
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 0;
+            margin-bottom: 2rem;
+            border-bottom: 1px solid var(--border-subtle);
+            animation: fadeInDown 0.6s ease;
+        }
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .page-title {
+            font-size: 2rem;
+            font-weight: 700;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .live-badge {
+            background: var(--gradient-main);
+            color: white;
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            animation: pulse 3s infinite;
+            box-shadow: var(--glow-primary);
+        }
+        .live-badge i { animation: spin 2s linear infinite; }
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        
+        /* ===== KPI CARDS ===== */
+        .kpi-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 2rem;
+        }
+        
+        .kpi-card {
+            background: var(--gradient-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 1.5rem;
+            text-align: center;
+            transition: all var(--transition-normal);
+            position: relative;
+            overflow: hidden;
+            animation: fadeInUp 0.5s ease backwards;
+        }
+        .kpi-card:nth-child(1) { animation-delay: 0.1s; }
+        .kpi-card:nth-child(2) { animation-delay: 0.2s; }
+        .kpi-card:nth-child(3) { animation-delay: 0.3s; }
+        .kpi-card:nth-child(4) { animation-delay: 0.4s; }
+        
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--gradient-main);
+            opacity: 0;
+            transition: opacity var(--transition-normal);
+            z-index: -1;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-4px);
+            border-color: var(--primary);
+            box-shadow: var(--glow-primary);
+        }
+        .kpi-card:hover::before { opacity: 0.08; }
+        
+        .kpi-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 14px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1rem;
+            font-size: 1.4rem;
+            background: rgba(59, 130, 246, 0.15);
+            color: var(--primary);
+            transition: all var(--transition-fast);
+        }
+        .kpi-card:hover .kpi-icon {
+            transform: scale(1.1) rotate(5deg);
+            background: var(--primary);
+            color: white;
+            box-shadow: 0 0 20px var(--primary-glow);
+        }
+        
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            line-height: 1;
+            margin-bottom: 0.25rem;
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kpi-label {
+            color: var(--text-secondary);
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 500;
+        }
+        
+        .kpi-trend {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.25rem;
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 50px;
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+        }
+        .kpi-trend.down {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+        }
+        
+        /* ===== CHART CARDS ===== */
+        .chart-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        
+        .chart-card {
+            background: var(--gradient-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 1.5rem;
+            transition: all var(--transition-normal);
+            animation: fadeInUp 0.5s ease backwards;
+        }
+        .chart-card:nth-child(2) { animation-delay: 0.15s; }
+        
+        .chart-card:hover {
+            border-color: var(--primary);
+            box-shadow: 0 8px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .chart-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .chart-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .chart-title i { color: var(--primary); }
+        
+        .chart-controls {
+            display: flex;
+            gap: 0.5rem;
+            align-items: center;
+        }
+        
+        .engine-selector, .search-box {
+            background: rgba(10, 14, 23, 0.8);
+            border: 1px solid var(--border-subtle);
+            border-radius: 12px;
+            padding: 0.5rem 1rem;
+            color: var(--text-primary);
+            font-size: 0.9rem;
+            transition: all var(--transition-fast);
+        }
+        .engine-selector:focus, .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        
+        .chart-container {
+            position: relative;
+            height: 300px;
+            width: 100%;
+        }
+        
+        /* ===== TABLE CARD ===== */
+        .table-card {
+            background: var(--gradient-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 20px;
+            padding: 1.5rem;
+            animation: fadeInUp 0.5s ease 0.3s backwards;
+        }
+        
+        .table-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-subtle);
+        }
+        
+        .table-responsive {
+            border-radius: 12px;
+            overflow: hidden;
+        }
+        
+        .table {
+            margin-bottom: 0;
+            --bs-table-bg: transparent;
+            --bs-table-color: var(--text-primary);
+            --bs-table-border-color: var(--border-subtle);
+        }
+        .table thead th {
+            background: rgba(30, 41, 59, 0.8);
+            font-weight: 600;
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: var(--text-secondary);
+            border: none;
+            padding: 1rem;
+        }
+        .table tbody td {
+            padding: 1rem;
+            border-color: var(--border-subtle);
+            font-size: 0.95rem;
+            vertical-align: middle;
+        }
+        .table tbody tr {
+            transition: all var(--transition-fast);
+        }
+        .table tbody tr:hover {
+            background: rgba(59, 130, 246, 0.08);
+            transform: translateX(4px);
+        }
+        
+        .status-badge {
+            padding: 0.35rem 0.85rem;
+            border-radius: 50px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        .status-critical {
+            background: rgba(239, 68, 68, 0.15);
+            color: var(--danger);
+            box-shadow: inset 0 0 0 1px rgba(239, 68, 68, 0.3);
+        }
+        .status-warning {
+            background: rgba(249, 115, 22, 0.15);
+            color: var(--warning);
+            box-shadow: inset 0 0 0 1px rgba(249, 115, 22, 0.3);
+        }
+        .status-healthy {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--success);
+            box-shadow: inset 0 0 0 1px rgba(16, 185, 129, 0.3);
+        }
+        
+        .trend-indicator {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+            font-size: 0.9rem;
+        }
+        .trend-down { color: var(--danger); }
+        .trend-stable { color: var(--text-secondary); }
+        .trend-up { color: var(--success); }
+        
+        /* ===== PAGINATION ===== */
+        .pagination-wrapper {
+            display: flex;
+            justify-content: center;
+            gap: 0.4rem;
+            margin-top: 1.5rem;
+            flex-wrap: wrap;
+        }
+        
+        .page-btn {
+            min-width: 36px;
+            height: 36px;
+            padding: 0 0.75rem;
+            border: 1px solid var(--border-subtle);
+            background: rgba(10, 14, 23, 0.8);
+            color: var(--text-secondary);
+            border-radius: 10px;
+            font-size: 0.9rem;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all var(--transition-fast);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .page-btn:hover:not(:disabled) {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+            transform: translateY(-2px);
+        }
+        .page-btn.active {
+            background: var(--gradient-main);
+            color: white;
+            border-color: transparent;
+            box-shadow: var(--glow-primary);
+        }
+        .page-btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+        
+        /* ===== LOADING STATES ===== */
+        .skeleton {
+            background: linear-gradient(90deg, rgba(59,130,246,0.1) 25%, rgba(59,130,246,0.2) 50%, rgba(59,130,246,0.1) 75%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite;
+            border-radius: 8px;
+        }
+        @keyframes shimmer {
+            0% { background-position: -200% 0; }
+            100% { background-position: 200% 0; }
+        }
+        
+        .skeleton-kpi { height: 120px; }
+        .skeleton-chart { height: 300px; }
+        .skeleton-row { height: 50px; margin-bottom: 0.5rem; }
+        
+        /* ===== TOAST NOTIFICATIONS ===== */
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 350px;
+        }
+        
+        .toast {
+            background: var(--gradient-card);
+            backdrop-filter: blur(12px);
+            border: 1px solid var(--border-subtle);
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.4);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+            max-width: 100%;
+        }
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100px); }
+        }
+        
+        .toast-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+        .toast-success { background: rgba(16, 185, 129, 0.2); color: var(--success); }
+        .toast-warning { background: rgba(249, 115, 22, 0.2); color: var(--warning); }
+        .toast-error { background: rgba(239, 68, 68, 0.2); color: var(--danger); }
+        
+        .toast-content { flex: 1; min-width: 0; }
+        .toast-title { font-weight: 600; font-size: 0.95rem; margin-bottom: 0.1rem; }
+        .toast-message { font-size: 0.85rem; color: var(--text-secondary); }
+        
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 992px) {
+            .chart-grid { grid-template-columns: 1fr; }
+            .kpi-value { font-size: 2rem; }
+        }
+        
+        @media (max-width: 768px) {
+            .container-fluid { padding: 0 1rem; }
+            .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .nav-link-cockpit { padding: 0.5rem 1rem; font-size: 0.85rem; }
+            .kpi-grid { grid-template-columns: repeat(2, 1fr); }
+            .kpi-value { font-size: 1.75rem; }
+            .chart-container { height: 250px; }
+            .table-header { flex-direction: column; align-items: flex-start; gap: 0.75rem; }
+            .search-box { width: 100%; }
+        }
+        
+        @media (max-width: 480px) {
+            .kpi-grid { grid-template-columns: 1fr; }
+            .nav-brand { font-size: 1.4rem; }
+            .page-title { font-size: 1.5rem; }
+        }
+        
+        /* ===== UTILITIES ===== */
+        .text-gradient {
+            background: var(--gradient-main);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .glow-primary { box-shadow: var(--glow-primary); }
+        .glow-danger { box-shadow: var(--glow-danger); }
+        .glow-success { box-shadow: var(--glow-success); }
+        
+        .cursor-pointer { cursor: pointer; }
+        .transition-all { transition: all var(--transition-normal); }
+    </style>
+</head>
+<body>
+
+<!-- Particules d'arrière-plan -->
+<div class="particles" id="particles"></div>
+
+<!-- Navbar -->
+<nav class="navbar-cockpit" id="navbar">
+    <div class="container-fluid px-3 px-md-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <!-- Brand -->
+            <div class="d-flex align-items-center">
+                <i class="fas fa-fighter-jet fa-2x me-3" style="color: var(--primary);"></i>
+                <a href="{% url 'accueil' %}" class="nav-brand" style="text-decoration: none;">
+                    <i class="fas fa-bolt me-1"></i>AeroPredict Pro
+                </a>
+                <span class="badge ms-3 py-1 px-3" style="background: var(--gradient); color: white; border-radius: 40px;">
+                    <i class="fas fa-microchip me-1"></i>LSTM
+                </span>
+            </div>
+            
+            <!-- Navigation -->
+            <div class="d-flex flex-wrap align-items-center gap-2">
+                <a href="/maintenance/input/" class="nav-link-cockpit">
+                    <i class="fas fa-microchip"></i> Diagnostic
+                </a>
+                <a href="/maintenance/test-radar/" class="nav-link-cockpit">
+                    <i class="fas fa-satellite-dish"></i> Live Radar
+                </a>
+                <a href="/maintenance/history/" class="nav-link-cockpit position-relative">
+                    <i class="fas fa-history"></i> Historique
+                    <span id="notification-badge" class="notification-badge" style="display:none;">0</span>
+                </a>
+                <a href="/maintenance/analytics/" class="nav-link-cockpit active">
+                    <i class="fas fa-chart-line"></i> Analytics
+                </a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- Main Content -->
+<div class="container-fluid px-3 px-md-4">
+    
+    <!-- Page Header -->
+    <div class="page-header">
+        <h2 class="page-title">
+            <i class="fas fa-chart-pie"></i> Analytics Cockpit
+        </h2>
+        <span class="live-badge">
+            <i class="fas fa-circle fa-beat" style="font-size: 0.6rem;"></i> Live Data
+        </span>
+    </div>
+    
+    <!-- KPI Cards -->
+    <div class="kpi-grid">
+        <div class="kpi-card">
+            <div class="kpi-icon"><i class="fas fa-engine"></i></div>
+            <div class="kpi-value" id="total-engines">--</div>
+            <div class="kpi-label">Moteurs surveillés</div>
+            <span class="kpi-trend"><i class="fas fa-arrow-up"></i> +12% ce mois</span>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(239,68,68,0.15); color: var(--danger);">
+                <i class="fas fa-exclamation-triangle"></i>
+            </div>
+            <div class="kpi-value" id="critical-count" style="--primary: var(--danger); --secondary: var(--danger);">--</div>
+            <div class="kpi-label">Alertes critiques</div>
+            <span class="kpi-trend down"><i class="fas fa-arrow-down"></i> -3 depuis hier</span>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(249,115,22,0.15); color: var(--warning);">
+                <i class="fas fa-exclamation-circle"></i>
+            </div>
+            <div class="kpi-value" id="warning-count" style="--primary: var(--warning); --secondary: var(--warning);">--</div>
+            <div class="kpi-label">Warnings actifs</div>
+            <span class="kpi-trend"><i class="fas fa-arrow-right"></i> Stable</span>
+        </div>
+        <div class="kpi-card">
+            <div class="kpi-icon" style="background: rgba(16,185,129,0.15); color: var(--success);">
+                <i class="fas fa-check-circle"></i>
+            </div>
+            <div class="kpi-value" id="healthy-count" style="--primary: var(--success); --secondary: var(--success);">--</div>
+            <div class="kpi-label">Moteurs sains</div>
+            <span class="kpi-trend"><i class="fas fa-arrow-up"></i> +8% ce mois</span>
+        </div>
+    </div>
+    
+    <!-- Charts Grid -->
+    <div class="chart-grid">
+        <!-- Fleet Health Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-pie"></i> Santé de la flotte
+                </h5>
+                <div class="chart-controls">
+                    <button class="page-btn" title="Actualiser" onclick="app.refreshFleetChart()">
+                        <i class="fas fa-sync-alt"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="fleetChart"></canvas>
+            </div>
+        </div>
+        
+        <!-- RUL Evolution Chart -->
+        <div class="chart-card">
+            <div class="chart-header">
+                <h5 class="chart-title">
+                    <i class="fas fa-chart-line"></i> Évolution du RUL
+                </h5>
+                <div class="chart-controls">
+                    <select id="engine-select" class="engine-selector">
+                        <option value="">Chargement...</option>
+                    </select>
+                </div>
+            </div>
+            <div class="chart-container">
+                <canvas id="rulChart"></canvas>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Engines Table -->
+    <div class="table-card">
+        <div class="table-header">
+            <h5 class="chart-title">
+                <i class="fas fa-table"></i> Moteurs sous surveillance
+            </h5>
+            <input type="text" id="table-search" class="search-box" placeholder="🔍 Rechercher un moteur..." style="width: 250px;">
+        </div>
+        
+        <div class="table-responsive">
+            <table class="table">
+                <thead>
+                    <tr>
+                        <th>Moteur</th>
+                        <th>Statut</th>
+                        <th>RUL (cycles)</th>
+                        <th>Anomalies</th>
+                        <th>Dernier cycle</th>
+                        <th>Tendance</th>
+                        <th>Actions</th>
+                    </tr>
+                </thead>
+                <tbody id="engines-table-body">
+                    <!-- Rows injected by JS -->
+                </tbody>
+            </table>
+        </div>
+        
+        <div id="table-pagination" class="pagination-wrapper"></div>
+        <div class="text-center mt-3 text-muted small">
+            <span id="table-count">0</span> moteurs affichés • Mise à jour auto toutes les 15s
+        </div>
+    </div>
+    
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<!-- JavaScript Application -->
+<script>
+const app = (function() {
+    // State
+    let fleetChart, rulChart, socket = null, currentEngine = null;
+    let allEngines = [], filteredEngines = [], currentPage = 1, pageSize = 5;
+    
+    // ===== UTILITIES =====
+    const $ = (sel, ctx = document) => ctx.querySelector(sel);
+    const $$ = (sel, ctx = document) => Array.from(ctx.querySelectorAll(sel));
+    
+    const showToast = (title, message, type = 'success') => {
+        const container = $('#toast-container');
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div class="toast-icon toast-${type}">
+                <i class="fas fa-${type === 'success' ? 'check' : type === 'warning' ? 'exclamation' : 'times'}"></i>
+            </div>
+            <div class="toast-content">
+                <div class="toast-title">${title}</div>
+                <div class="toast-message">${message}</div>
+            </div>
+        `;
+        container.appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    };
+    
+    const formatNumber = (num) => new Intl.NumberFormat('fr-FR').format(num);
+    const formatRUL = (rul) => rul != null ? `${Math.round(rul)} cycles` : '--';
+    
+    // ===== CHARTS =====
+    Chart.defaults.color = '#94a3b8';
+    Chart.defaults.borderColor = 'rgba(59, 130, 246, 0.1)';
+    Chart.defaults.font.family = "'Inter', sans-serif";
+    
+    function initFleetChart() {
+        const ctx = document.getElementById('fleetChart');
+        fleetChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: {
+                labels: ['Critiques', 'Warnings', 'Sains'],
+                datasets: [{
+                    data: [0, 0, 0],
+                    backgroundColor: [
+                        'rgba(239, 68, 68, 0.8)',
+                        'rgba(249, 115, 22, 0.8)',
+                        'rgba(16, 185, 129, 0.8)'
+                    ],
+                    borderColor: [
+                        'rgba(239, 68, 68, 0.3)',
+                        'rgba(249, 115, 22, 0.3)',
+                        'rgba(16, 185, 129, 0.3)'
+                    ],
+                    borderWidth: 2,
+                    hoverOffset: 10
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                cutout: '70%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { padding: 20, usePointStyle: true, pointStyle: 'circle' }
+                    },
+                    tooltip: {
+                        backgroundColor: 'rgba(18, 24, 36, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#94a3b8',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        displayColors: true
+                    }
+                },
+                animation: {
+                    animateRotate: true,
+                    animateScale: true,
+                    duration: 1000,
+                    easing: 'easeOutQuart'
+                }
+            }
+        });
+    }
+    
+    function initRULChart() {
+        const ctx = document.getElementById('rulChart');
+        rulChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [],
+                datasets: [{
+                    label: 'RUL estimé',
+                    data: [],
+                    borderColor: '#3b82f6',
+                    backgroundColor: 'rgba(59, 130, 246, 0.1)',
+                    borderWidth: 3,
+                    pointBackgroundColor: '#3b82f6',
+                    pointBorderColor: '#fff',
+                    pointBorderWidth: 2,
+                    pointRadius: 4,
+                    pointHoverRadius: 6,
+                    tension: 0.4,
+                    fill: true,
+                    cubicInterpolationMode: 'monotone'
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                interaction: { mode: 'index', intersect: false },
+                plugins: {
+                    legend: { display: false },
+                    tooltip: {
+                        backgroundColor: 'rgba(18, 24, 36, 0.95)',
+                        titleColor: '#f8fafc',
+                        bodyColor: '#94a3b8',
+                        borderColor: 'rgba(59, 130, 246, 0.3)',
+                        borderWidth: 1,
+                        padding: 12,
+                        callbacks: {
+                            label: (ctx) => `RUL: ${Math.round(ctx.parsed.y)} cycles`
+                        }
+                    }
+                },
+                scales: {
+                    y: {
+                        beginAtZero: true,
+                        grid: { color: 'rgba(59, 130, 246, 0.05)' },
+                        ticks: { 
+                            color: '#94a3b8',
+                            callback: (val) => val + 'c'
+                        },
+                        title: { display: true, text: 'Cycles restants', color: '#64748b' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8', maxTicksLimit: 8 },
+                        title: { display: true, text: 'Cycle', color: '#64748b' }
+                    }
+                },
+                animation: { duration: 800, easing: 'easeOutQuart' }
+            }
+        });
+    }
+    
+    // ===== DATA LOADING =====
+    async function loadFleetHealth() {
+        try {
+            const res = await fetch('/maintenance/api/fleet/health/');
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            
+            // Update KPIs with animation
+            animateValue('total-engines', data.fleet.total);
+            animateValue('critical-count', data.fleet.critical);
+            animateValue('warning-count', data.fleet.warning);
+            animateValue('healthy-count', data.fleet.healthy);
+            
+            // Update chart
+            if (fleetChart) {
+                fleetChart.data.datasets[0].data = [
+                    data.fleet.critical,
+                    data.fleet.warning,
+                    data.fleet.healthy
+                ];
+                fleetChart.update('active');
+            }
+        } catch (err) {
+            console.error('Erreur chargement flotte:', err);
+            showToast('Erreur de connexion', 'Impossible de charger les données de la flotte', 'error');
+        }
+    }
+    
+    async function loadEnginesList() {
+        try {
+            const res = await fetch('/maintenance/api/engines/list/');
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            
+            const select = $('#engine-select');
+            select.innerHTML = '<option value="">Sélectionner un moteur</option>';
+            
+            if (data.engines?.length > 0) {
+                data.engines.forEach(e => {
+                    const opt = document.createElement('option');
+                    opt.value = e.unit_id;
+                    opt.textContent = e.unit_id;
+                    select.appendChild(opt);
+                });
+                
+                // Auto-select first engine
+                currentEngine = data.engines[0].unit_id;
+                select.value = currentEngine;
+                await loadEngineTimeSeries(currentEngine);
+            }
+        } catch (err) {
+            console.error('Erreur chargement liste moteurs:', err);
+        }
+    }
+    
+    async function loadEngineTimeSeries(engineId) {
+        if (!engineId) return;
+        
+        try {
+            const res = await fetch(`/maintenance/api/engine/${engineId}/timeseries/`);
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            
+            if (!data.cycles?.length) {
+                rulChart.data.labels = ['Aucune donnée'];
+                rulChart.data.datasets[0].data = [0];
+                rulChart.update();
+                return;
+            }
+            
+            // Update chart data
+            rulChart.data.labels = data.cycles;
+            rulChart.data.datasets[0].data = data.rul_values;
+            
+            // Dynamic color based on last RUL value
+            const lastRUL = data.rul_values[data.rul_values.length - 1];
+            const color = lastRUL < 30 ? '#ef4444' : lastRUL < 60 ? '#f97316' : '#10b981';
+            rulChart.data.datasets[0].borderColor = color;
+            rulChart.data.datasets[0].pointBackgroundColor = color;
+            rulChart.data.datasets[0].backgroundColor = `${color}15`;
+            
+            rulChart.update('active');
+            
+        } catch (err) {
+            console.error('Erreur timeseries:', err);
+        }
+    }
+    
+    async function loadEnginesTable() {
+        try {
+            const res = await fetch('/maintenance/api/engines/status/');
+            if (!res.ok) throw new Error('API error');
+            const data = await res.json();
+            
+            allEngines = data.engines || [];
+            filterAndRenderTable();
+        } catch (err) {
+            console.error('Erreur chargement table:', err);
+        }
+    }
+    
+    // ===== TABLE & FILTERING =====
+    function filterAndRenderTable() {
+        const query = $('#table-search')?.value?.toLowerCase() || '';
+        filteredEngines = allEngines.filter(e => 
+            e.unit_id?.toLowerCase().includes(query)
+        );
+        
+        $('#table-count').textContent = filteredEngines.length;
+        
+        const totalPages = Math.ceil(filteredEngines.length / pageSize);
+        const start = (currentPage - 1) * pageSize;
+        const pageEngines = filteredEngines.slice(start, start + pageSize);
+        
+        const tbody = $('#engines-table-body');
+        if (!pageEngines.length) {
+            tbody.innerHTML = `<tr><td colspan="7" class="text-center py-4 text-muted">Aucun moteur trouvé</td></tr>`;
+            renderPagination(0);
+            return;
+        }
+        
+        tbody.innerHTML = pageEngines.map(e => {
+            const statusClass = e.status?.includes('CRITICAL') ? 'critical' : 
+                               e.status?.includes('WARNING') ? 'warning' : 'healthy';
+            const trendIcon = e.trend === 'degrading' ? '📉' : e.trend === 'improving' ? '📈' : '➡️';
+            const trendClass = e.trend === 'degrading' ? 'trend-down' : e.trend === 'improving' ? 'trend-up' : 'trend-stable';
+            
+            return `
+                <tr class="transition-all">
+                    <td>
+                        <div class="d-flex align-items-center gap-2">
+                            <i class="fas fa-engine" style="color: var(--primary);"></i>
+                            <strong>${e.unit_id || '--'}</strong>
+                        </div>
+                    </td>
+                    <td>
+                        <span class="status-badge status-${statusClass}">
+                            <i class="fas fa-circle fa-beat" style="font-size: 0.5rem;"></i>
+                            ${e.status || 'INCONNU'}
+                        </span>
+                    </td>
+                    <td><strong>${formatRUL(e.current_rul)}</strong></td>
+                    <td>
+                        ${e.anomaly_count > 0 
+                            ? `<span class="badge bg-danger bg-opacity-25 text-danger">${e.anomaly_count}</span>` 
+                            : '<span class="text-muted small">Aucune</span>'}
+                    </td>
+                    <td class="text-muted">${e.last_cycle || '--'}</td>
+                    <td><span class="trend-indicator ${trendClass}">${trendIcon}</span></td>
+                    <td>
+                        <button class="page-btn py-1 px-3" title="Voir détails" 
+                                onclick="app.viewEngineDetails('${e.unit_id}')">
+                            <i class="fas fa-eye"></i>
+                        </button>
+                    </td>
+                </tr>
+            `;
+        }).join('');
+        
+        renderPagination(totalPages);
+    }
+    
+    function renderPagination(totalPages) {
+        const container = $('#table-pagination');
+        if (!container) return;
+        
+        if (totalPages <= 1) {
+            container.innerHTML = '';
+            return;
+        }
+        
+        let html = '';
+        
+        // Previous
+        html += `<button class="page-btn" ${currentPage === 1 ? 'disabled' : ''} 
+                    onclick="app.goToPage(${currentPage - 1})">
+                    <i class="fas fa-chevron-left"></i>
+                </button>`;
+        
+        // Pages
+        for (let i = 1; i <= totalPages; i++) {
+            if (i === 1 || i === totalPages || (i >= currentPage - 1 && i <= currentPage + 1)) {
+                html += `<button class="page-btn ${i === currentPage ? 'active' : ''}" 
+                            onclick="app.goToPage(${i})">${i}</button>`;
+            } else if (i === currentPage - 2 || i === currentPage + 2) {
+                html += `<span class="text-muted px-2">...</span>`;
+            }
+        }
+        
+        // Next
+        html += `<button class="page-btn" ${currentPage === totalPages ? 'disabled' : ''} 
+                    onclick="app.goToPage(${currentPage + 1})">
+                    <i class="fas fa-chevron-right"></i>
+                </button>`;
+        
+        container.innerHTML = html;
+    }
+    
+    // ===== ANIMATIONS =====
+    function animateValue(elementId, end, duration = 800) {
+        const el = document.getElementById(elementId);
+        if (!el) return;
+        
+        const start = parseInt(el.textContent) || 0;
+        const range = end - start;
+        const startTime = performance.now();
+        
+        function step(currentTime) {
+            const progress = Math.min((currentTime - startTime) / duration, 1);
+            const eased = 1 - Math.pow(1 - progress, 3); // easeOutCubic
+            el.textContent = formatNumber(Math.round(start + range * eased));
+            
+            if (progress < 1) requestAnimationFrame(step);
+        }
+        requestAnimationFrame(step);
+    }
+    
+    // ===== WEBSOCKET =====
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const wsUrl = `${protocol}//${window.location.host}/ws/alerts/fleet/`;
+        
+        socket = new WebSocket(wsUrl);
+        
+        socket.onopen = () => {
+            console.log('✅ WebSocket connecté');
+            showToast('Connecté', 'Données en temps réel activées', 'success');
+        };
+        
+        socket.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                // Refresh data on alert
+                loadFleetHealth();
+                loadEnginesTable();
+                if (currentEngine) loadEngineTimeSeries(currentEngine);
+                updateUnreadBadge();
+            } catch (err) {
+                console.error('Erreur parsing WebSocket:', err);
+                showToast('Erreur de données', 'Format de message invalide', 'error');
+            }
+        };
+        
+        socket.onclose = () => {
+            console.log('🔌 WebSocket déconnecté, reconnexion dans 3s...');
+            setTimeout(connectWebSocket, 3000);
+        };
+        
+        socket.onerror = (err) => {
+            console.error('❌ Erreur WebSocket:', err);
+        };
+    }
+    
+    async function updateUnreadBadge() {
+        try {
+            const res = await fetch('/maintenance/api/unread-count/');
+            const data = await res.json();
+            const badge = $('#notification-badge');
+            if (badge) {
+                const count = data.unread_count || 0;
+                badge.textContent = count > 9 ? '9+' : count;
+                badge.style.display = count > 0 ? 'inline-block' : 'none';
+            }
+        } catch (err) {
+            console.error('Erreur badge notifications:', err);
+        }
+    }
+    
+    // ===== PUBLIC API =====
+    return {
+        init() {
+            // Create particles
+            const particlesContainer = document.getElementById('particles');
+            for (let i = 0; i < 30; i++) {
+                const p = document.createElement('div');
+                p.className = 'particle';
+                p.style.left = `${Math.random() * 100}%`;
+                p.style.animationDelay = `${Math.random() * 15}s`;
+                p.style.animationDuration = `${15 + Math.random() * 10}s`;
+                particlesContainer.appendChild(p);
+            }
+            
+            // Navbar scroll effect
+            window.addEventListener('scroll', () => {
+                const navbar = document.getElementById('navbar');
+                if (window.scrollY > 50) {
+                    navbar.classList.add('scrolled');
+                } else {
+                    navbar.classList.remove('scrolled');
+                }
+            });
+            
+            // Init charts
+            initFleetChart();
+            initRULChart();
+            
+            // Load data
+            loadFleetHealth();
+            loadEnginesList();
+            loadEnginesTable();
+            
+            // Connect WebSocket
+            connectWebSocket();
+            
+            // Auto-refresh
+            setInterval(() => {
+                loadFleetHealth();
+                loadEnginesTable();
+            }, 15000);
+            
+            setInterval(updateUnreadBadge, 5000);
+            updateUnreadBadge();
+            
+            // Event listeners
+            $('#engine-select')?.addEventListener('change', (e) => {
+                currentEngine = e.target.value;
+                if (currentEngine) loadEngineTimeSeries(currentEngine);
+            });
+            
+            $('#table-search')?.addEventListener('input', () => {
+                currentPage = 1;
+                filterAndRenderTable();
+            });
+            
+            // Keyboard shortcuts
+            document.addEventListener('keydown', (e) => {
+                if (e.key === '/' && document.activeElement.tagName !== 'INPUT') {
+                    e.preventDefault();
+                    $('#table-search')?.focus();
+                }
+                if (e.key === 'r' && (e.ctrlKey || e.metaKey)) {
+                    e.preventDefault();
+                    loadFleetHealth();
+                    showToast('Actualisé', 'Données rafraîchies', 'success');
+                }
+            });
+            
+            console.log('🚀 AeroPredict Analytics Cockpit initialized');
+        },
+        
+        goToPage(page) {
+            currentPage = page;
+            filterAndRenderTable();
+        },
+        
+        refreshFleetChart() {
+            loadFleetHealth();
+            showToast('Actualisation', 'Données de la flotte mises à jour', 'success');
+        },
+        
+        viewEngineDetails(engineId) {
+            showToast('Navigation', `Ouverture des détails pour ${engineId}...`, 'info');
+            // window.location.href = `/maintenance/engine/${engineId}/`;
+        }
+    };
+})();
+
+// Initialize on DOM ready
+document.addEventListener('DOMContentLoaded', () => {
+    app.init();
+});
+
+// Handle page visibility for WebSocket efficiency
+document.addEventListener('visibilitychange', () => {
+    if (document.hidden) {
+        // Pause heavy updates when tab is not visible
+        console.log('📴 Tab hidden - reducing update frequency');
+    } else {
+        // Resume updates when tab is visible
+        console.log('📱 Tab visible - resuming updates');
+        app.refreshFleetChart();
+    }
+});
+</script>
+
+</body>
+</html>

@@ -1,0 +1,439 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroPredict Pro | Cockpit</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+    
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-light: #60a5fa;
+            --secondary: #7c3aed;
+            --danger: #ef4444;
+            --warning: #f59e0b;
+            --success: #10b981;
+            --dark-bg: #0a0e17;
+            --card-bg: rgba(18, 24, 36, 0.98);
+            --glass: rgba(255, 255, 255, 0.03);
+            --gradient: linear-gradient(135deg, #2563eb 0%, #7c3aed 100%);
+            --gradient-warning: linear-gradient(135deg, #f59e0b 0%, #ef4444 100%);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: radial-gradient(circle at 50% 0%, #1a2a4a 0%, var(--dark-bg) 100%);
+            min-height: 100vh;
+            font-family: 'Inter', 'Segoe UI', sans-serif;
+            color: #e2e8f0;
+        }
+        
+        body::before {
+            content: '';
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: 
+                repeating-linear-gradient(0deg, transparent 0px, rgba(37, 99, 235, 0.015) 2px, transparent 4px),
+                repeating-linear-gradient(90deg, transparent 0px, rgba(37, 99, 235, 0.015) 2px, transparent 4px);
+            pointer-events: none;
+            z-index: -1;
+        }
+        
+        /* Navbar Premium */
+        .navbar-cockpit {
+            position: sticky;
+            top: 0; z-index: 1000;
+            background: rgba(10, 14, 23, 0.95);
+            backdrop-filter: blur(25px);
+            border-bottom: 1px solid rgba(37, 99, 235, 0.3);
+            padding: 0.75rem 0;
+            margin-bottom: 2rem;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+        }
+        
+        .nav-brand {
+            font-size: 1.8rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            letter-spacing: -0.5px;
+        }
+        
+        .nav-link-cockpit {
+            color: #94a3b8 !important;
+            padding: 0.6rem 1.4rem;
+            border-radius: 40px;
+            font-weight: 500;
+            transition: all 0.3s;
+        }
+        
+        .nav-link-cockpit:hover {
+            background: rgba(37, 99, 235, 0.15);
+            color: white !important;
+        }
+        
+        .nav-link-cockpit.active {
+            background: var(--gradient);
+            color: white !important;
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
+        }
+        
+        /* KPI Cards Premium */
+        .kpi-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: 24px;
+            padding: 1.5rem 1rem;
+            transition: all 0.3s;
+            position: relative;
+            overflow: hidden;
+        }
+        
+        .kpi-card::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 3px;
+            background: var(--gradient);
+            opacity: 0;
+            transition: opacity 0.3s;
+        }
+        
+        .kpi-card:hover::before {
+            opacity: 1;
+        }
+        
+        .kpi-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(37, 99, 235, 0.4);
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        .kpi-icon {
+            font-size: 2rem;
+            margin-bottom: 0.5rem;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .kpi-value {
+            font-size: 2.5rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            line-height: 1.2;
+        }
+        
+        .kpi-label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        /* Chart Card */
+        .chart-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(37, 99, 235, 0.15);
+            border-radius: 28px;
+            padding: 1.5rem;
+            height: 420px;
+            position: relative;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+        
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        
+        .chart-title {
+            font-weight: 600;
+            color: var(--primary-light);
+        }
+        
+        .engine-selector {
+            background: rgba(10, 14, 23, 0.9);
+            border: 1.5px solid rgba(37, 99, 235, 0.3);
+            border-radius: 40px;
+            padding: 0.5rem 1.2rem;
+            color: white !important;
+            font-size: 0.9rem;
+            cursor: pointer;
+        }
+        
+        /* Alert Feed */
+        .alert-card {
+            background: var(--card-bg);
+            backdrop-filter: blur(15px);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 24px;
+            height: 420px;
+            display: flex;
+            flex-direction: column;
+        }
+        
+        .alert-header {
+            padding: 1.2rem 1.5rem;
+            border-bottom: 1px solid rgba(239, 68, 68, 0.2);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        
+        .pulse-dot {
+            width: 12px; height: 12px;
+            background: var(--danger);
+            border-radius: 50%;
+            animation: pulse 1.5s infinite;
+            box-shadow: 0 0 15px var(--danger);
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.6; transform: scale(1.15); }
+        }
+        
+        .alert-feed {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1rem;
+        }
+        
+        .alert-item {
+            background: rgba(239, 68, 68, 0.05);
+            border-left: 4px solid var(--danger);
+            padding: 1rem;
+            margin-bottom: 0.8rem;
+            border-radius: 12px;
+            animation: slideIn 0.3s ease;
+            transition: all 0.2s;
+        }
+        
+        .alert-item:hover {
+            background: rgba(239, 68, 68, 0.1);
+            transform: translateX(5px);
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-20px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        .diagnostic-panel {
+            background: linear-gradient(135deg, rgba(37, 99, 235, 0.1), rgba(124, 58, 237, 0.1));
+            border-radius: 16px;
+            padding: 1.2rem;
+            margin-top: 1rem;
+            border: 1px solid rgba(37, 99, 235, 0.3);
+            animation: fadeIn 0.5s;
+        }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+        
+        .status-badge {
+            padding: 0.3rem 1rem;
+            border-radius: 50px;
+            font-weight: 600;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+        
+        /* Scrollbar */
+        .alert-feed::-webkit-scrollbar {
+            width: 5px;
+        }
+        
+        .alert-feed::-webkit-scrollbar-track {
+            background: rgba(255, 255, 255, 0.02);
+        }
+        
+        .alert-feed::-webkit-scrollbar-thumb {
+            background: var(--danger);
+            border-radius: 10px;
+        }
+        
+        @media (max-width: 768px) {
+            .kpi-value { font-size: 1.8rem; }
+            .chart-card, .alert-card { height: 350px; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar-cockpit">
+    <div class="container-fluid px-4">
+        <div class="d-flex align-items-center justify-content-between">
+            <div class="d-flex align-items-center">
+                <i class="fas fa-fighter-jet fa-2x me-3" style="color: var(--primary);"></i>
+                <span class="nav-brand">AeroPredict Pro</span>
+                <span class="badge ms-3" style="background: var(--gradient); padding:0.3rem 1rem;">COCKPIT</span>
+            </div>
+            <div class="d-flex flex-wrap">
+                <a href="{% url 'cockpit'%}" class="nav-link-cockpit active"><i class="fas fa-compass"></i> Cockpit</a>
+                <a href="/maintenance/test-radar/" class="nav-link-cockpit"><i class="fas fa-satellite-dish"></i> Live Radar</a>
+                <a href="/maintenance/history/" class="nav-link-cockpit"><i class="fas fa-history"></i> Historique</a>
+                <a href="/maintenance/analytics/" class="nav-link-cockpit"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a href="/maintenance/input/" class="nav-link-cockpit"><i class="fas fa-microchip"></i> Diagnostic</a>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<div class="container-fluid px-4">
+    
+    <!-- KPI -->
+    <div class="row g-3 mb-4">
+        <div class="col-4 col-md-2"><div class="kpi-card text-center"><i class="fas fa-engine kpi-icon"></i><div class="kpi-value" id="total-engines">{{ total_engines }}</div><div class="kpi-label">Moteurs</div></div></div>
+        <div class="col-4 col-md-2"><div class="kpi-card text-center"><i class="fas fa-exclamation-triangle kpi-icon" style="background:var(--gradient-warning); -webkit-background-clip:text; background-clip:text;"></i><div class="kpi-value" id="critical-count" style="background:var(--gradient-warning); -webkit-background-clip:text; background-clip:text;">{{ critical_count }}</div><div class="kpi-label">Critiques</div></div></div>
+        <div class="col-4 col-md-2"><div class="kpi-card text-center"><i class="fas fa-exclamation-circle kpi-icon" style="color:var(--warning); -webkit-text-fill-color:var(--warning);"></i><div class="kpi-value" id="warning-count" style="color:var(--warning); -webkit-text-fill-color:var(--warning);">{{ warning_count }}</div><div class="kpi-label">Warnings</div></div></div>
+        <div class="col-4 col-md-2"><div class="kpi-card text-center"><i class="fas fa-check-circle kpi-icon" style="color:var(--success); -webkit-text-fill-color:var(--success);"></i><div class="kpi-value" id="healthy-count" style="color:var(--success); -webkit-text-fill-color:var(--success);">{{ healthy_count }}</div><div class="kpi-label">Sains</div></div></div>
+        <div class="col-4 col-md-2"><div class="kpi-card text-center"><i class="fas fa-bell kpi-icon"></i><div class="kpi-value" id="active-alerts">{{ active_alerts }}</div><div class="kpi-label">Alertes</div></div></div>
+        <div class="col-4 col-md-2"><div class="kpi-card text-center"><i class="fas fa-chart-line kpi-icon"></i><div class="kpi-value" id="avg-rul">-</div><div class="kpi-label">RUL Moyen</div></div></div>
+    </div>
+    
+    <!-- GRAPHIQUE + ALERTES -->
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="chart-card">
+                <div class="chart-header">
+                    <h5 class="chart-title"><i class="fas fa-heartbeat me-2" style="color:var(--danger);"></i>Courbe de Santé - Temps Réel</h5>
+                    <select id="engine-selector" class="engine-selector">
+                        <option value="">Tous les moteurs</option>
+                    </select>
+                </div>
+                <div style="position: relative; height: calc(100% - 60px);">
+                    <canvas id="liveHealthChart"></canvas>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col-lg-4">
+            <div class="alert-card">
+                <div class="alert-header">
+                    <span class="pulse-dot"></span>
+                    <h5 class="mb-0" style="color:white;">Alertes Critiques</h5>
+                    <span class="badge bg-danger ms-auto" id="alert-counter">0</span>
+                </div>
+                <div class="alert-feed" id="alert-feed">
+                    <p class="text-secondary text-center py-4"><i class="fas fa-shield-alt fa-2x mb-2 opacity-50"></i><br>En attente d'alertes...</p>
+                </div>
+                <div id="diagnostic-panel" class="diagnostic-panel mx-3 mb-3" style="display:none;"></div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    const app = (function() {
+        let healthChart, socket, currentEngine = null, alertCounter = 0;
+        
+        function initChart() {
+            const ctx = document.getElementById('liveHealthChart').getContext('2d');
+            healthChart = new Chart(ctx, {
+                type: 'line',
+                data: { labels: [], datasets: [{ label: 'Indice de Santé (%)', data: [], borderColor: '#10b981', backgroundColor: 'rgba(16, 185, 129, 0.08)', tension: 0.4, fill: true, pointRadius: 4, pointBackgroundColor: '#10b981', pointBorderColor: '#0a0e17', pointBorderWidth: 2 }] },
+                options: {
+                    responsive: true, maintainAspectRatio: true,
+                    plugins: { legend: { labels: { color: '#e2e8f0', font: { size: 12 } } } },
+                    scales: {
+                        y: { min: 0, max: 100, grid: { color: '#1e293b' }, ticks: { color: '#94a3b8' } },
+                        x: { grid: { display: false }, ticks: { color: '#94a3b8' } }
+                    },
+                    animation: { duration: 600, easing: 'easeInOutQuart' }
+                }
+            });
+        }
+        
+        function updateChart(engineId, healthScore, status) {
+            const now = new Date().toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+            healthChart.data.labels.push(`${engineId?.slice(0,8)} - ${now}`);
+            healthChart.data.datasets[0].data.push(healthScore * 100);
+            if (healthChart.data.labels.length > 15) { healthChart.data.labels.shift(); healthChart.data.datasets[0].data.shift(); }
+            
+            if (status.includes('CRITICAL')) { healthChart.data.datasets[0].borderColor = '#ef4444'; healthChart.data.datasets[0].backgroundColor = 'rgba(239, 68, 68, 0.08)'; }
+            else if (status.includes('WARNING')) { healthChart.data.datasets[0].borderColor = '#f59e0b'; healthChart.data.datasets[0].backgroundColor = 'rgba(245, 158, 11, 0.08)'; }
+            else { healthChart.data.datasets[0].borderColor = '#10b981'; healthChart.data.datasets[0].backgroundColor = 'rgba(16, 185, 129, 0.08)'; }
+            healthChart.update();
+        }
+        
+        function showDiagnostic(data) {
+            const panel = document.getElementById('diagnostic-panel');
+            const d = data.diagnosis || {};
+            panel.innerHTML = `<div class="d-flex justify-content-between"><strong><i class="fas fa-engine me-2"></i>${data.engine_id}</strong><span class="status-badge" style="background:${data.status.includes('CRITICAL')?'#ef4444':(data.status.includes('WARNING')?'#f59e0b':'#10b981')}20;color:${data.status.includes('CRITICAL')?'#ef4444':(data.status.includes('WARNING')?'#f59e0b':'#10b981')};">${data.status}</span></div><div class="row mt-2"><div class="col-6"><small>RUL</small><br><strong>${data.rul} cycles</strong></div><div class="col-6"><small>Risque</small><br><strong>${d.global_risk_score||'--'}%</strong></div></div>${d.summary?`<div class="mt-2"><small><i class="fas fa-clipboard-list me-1"></i>${d.summary}</small></div>`:''}${d.actions?.length?`<div class="mt-2"><small><i class="fas fa-wrench me-1"></i>${d.actions.slice(0,2).join(' • ')}</small></div>`:''}`;
+            panel.style.display = 'block';
+        }
+        
+        function addAlert(data) {
+            const feed = document.getElementById('alert-feed');
+            if (feed.querySelector('p')) feed.innerHTML = '';
+            const div = document.createElement('div');
+            div.className = 'alert-item animate__animated animate__fadeInUp';
+            const d = data.diagnosis || {};
+            div.innerHTML = `<div class="d-flex justify-content-between"><strong>${data.engine_id}</strong><span class="badge ${data.status.includes('CRITICAL')?'bg-danger':(data.status.includes('WARNING')?'bg-warning':'bg-success')}">${data.status}</span></div><div class="mt-1">RUL: ${data.rul} cycles | Anomalies: ${data.anomalies_count||0}</div>${d.summary?`<small class="text-info">${d.summary.substring(0,60)}...</small>`:''}<div class="mt-1"><small class="text-secondary">${data.timestamp_display||new Date().toLocaleTimeString()}</small></div>`;
+            feed.insertBefore(div, feed.firstChild);
+            if (feed.children.length > 6) feed.lastElementChild.remove();
+            alertCounter++; document.getElementById('alert-counter').textContent = alertCounter;
+        }
+        
+        async function updateKPIs() {
+            try {
+                const r = await fetch('/maintenance/api/fleet/health/'); const d = await r.json();
+                document.getElementById('total-engines').textContent = d.fleet.total;
+                document.getElementById('critical-count').textContent = d.fleet.critical;
+                document.getElementById('warning-count').textContent = d.fleet.warning;
+                document.getElementById('healthy-count').textContent = d.fleet.healthy;
+                document.getElementById('avg-rul').textContent = d.metrics.avg_rul_critical?.toFixed(0) || '-';
+            } catch(e) {}
+        }
+        
+        async function loadEngines() {
+            const r = await fetch('/maintenance/api/engines/list/'); const d = await r.json();
+            const s = document.getElementById('engine-selector');
+            d.engines.forEach(e => s.innerHTML += `<option value="${e.unit_id}">${e.unit_id}</option>`);
+        }
+        
+        function connectWebSocket() {
+            socket = new WebSocket(`ws://${window.location.host}/ws/alerts/fleet/`);
+            socket.onopen = () => console.log('✅ Cockpit connecté');
+            socket.onmessage = (e) => {
+                const data = JSON.parse(e.data);
+                updateChart(data.engine_id, data.ai_prediction?.health_score || 0.5, data.status);
+                showDiagnostic(data);
+                if (data.status.includes('CRITICAL') || data.status.includes('WARNING')) addAlert(data);
+                updateKPIs();
+            };
+            socket.onclose = () => setTimeout(connectWebSocket, 3000);
+        }
+        
+        function init() {
+            initChart(); loadEngines(); connectWebSocket(); updateKPIs(); setInterval(updateKPIs, 10000);
+        }
+        return { init };
+    })();
+    document.addEventListener('DOMContentLoaded', app.init);
+</script>
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

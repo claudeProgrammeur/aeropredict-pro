@@ -1,0 +1,184 @@
+{
+  "dashboard": {
+    "id": null,
+    "title": "🛩️ AeroPredict - Fleet Monitoring",
+    "tags": ["aeropredict", "phm", "rul", "maintenance"],
+    "timezone": "browser",
+    "panels": [
+      {
+        "id": 1,
+        "title": "🚨 Alertes en Temps Réel",
+        "type": "stat",
+        "targets": [
+          {
+            "expr": "sum(aeropredict_anomalies_total{severity=\"CRITICAL\"}) by (engine_id)",
+            "legendFormat": "{{engine_id}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "orange", "value": 1},
+                {"color": "red", "value": 3}
+              ]
+            },
+            "mappings": [
+              {"options": {"0": {"text": "✅ Sain"}}, "type": "value"}
+            ]
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0}
+      },
+      {
+        "id": 2,
+        "title": "📊 RUL Actuel par Moteur",
+        "type": "gauge",
+        "targets": [
+          {
+            "expr": "aeropredict_rul_current",
+            "legendFormat": "{{engine_id}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "min": 0,
+            "max": 125,
+            "thresholds": {
+              "steps": [
+                {"color": "red", "value": 0},
+                {"color": "orange", "value": 15},
+                {"color": "green", "value": 50}
+              ]
+            },
+            "unit": "cycles"
+          }
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0}
+      },
+      {
+        "id": 3,
+        "title": "📈 Évolution du RUL (Dernières 24h)",
+        "type": "timeseries",
+        "targets": [
+          {
+            "expr": "aeropredict_rul_current",
+            "legendFormat": "{{engine_id}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "palette-classic"},
+            "custom": {
+              "axisLabel": "RUL (cycles)",
+              "drawStyle": "line",
+              "fillOpacity": 10,
+              "gradientMode": "opacity",
+              "lineWidth": 2,
+              "showPoints": "auto"
+            },
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "orange", "value": 30},
+                {"color": "red", "value": 15}
+              ]
+            }
+          }
+        },
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": 8}
+      },
+      {
+        "id": 4,
+        "title": "⚙️ Performance des Tâches Celery",
+        "type": "table",
+        "targets": [
+          {
+            "expr": "rate(aeropredict_tasks_total[5m])",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "{{status}}",
+            "refId": "A"
+          },
+          {
+            "expr": "histogram_quantile(0.95, rate(aeropredict_task_duration_seconds_bucket[5m]))",
+            "format": "table",
+            "instant": true,
+            "legendFormat": "p95 duration",
+            "refId": "B"
+          }
+        ],
+        "transformations": [
+          {
+            "id": "organize",
+            "options": {
+              "excludeByName": {"Time": true, "Value #B": false},
+              "renameByName": {
+                "Value #A": "Tâches/min",
+                "Value #B": "Durée p95 (s)",
+                "status": "Statut"
+              }
+            }
+          }
+        ],
+        "gridPos": {"h": 8, "w": 12, "x": 0, "y": 18}
+      },
+      {
+        "id": 5,
+        "title": "🔍 Détection d'Anomalies par Capteur",
+        "type": "bargauge",
+        "targets": [
+          {
+            "expr": "sum(rate(aeropredict_anomalies_total[1h])) by (severity)",
+            "legendFormat": "{{severity}}",
+            "refId": "A"
+          }
+        ],
+        "fieldConfig": {
+          "defaults": {
+            "color": {"mode": "thresholds"},
+            "thresholds": {
+              "steps": [
+                {"color": "green", "value": null},
+                {"color": "yellow", "value": 5},
+                {"color": "red", "value": 20}
+              ]
+            }
+          }
+        },
+        "options": {
+          "displayMode": "gradient",
+          "orientation": "horizontal",
+          "showUnfilled": true
+        },
+        "gridPos": {"h": 8, "w": 12, "x": 12, "y": 18}
+      },
+      {
+        "id": 6,
+        "title": "📋 Historique des Alertes (Dernières 24h)",
+        "type": "logs",
+        "targets": [
+          {
+            "expr": "{job=\"aeropredict\"} |~ \"ALERTE|CRITICAL|WARNING\"",
+            "refId": "A"
+          }
+        ],
+        "options": {
+          "showLabels": true,
+          "showTime": true,
+          "wrapLogMessage": true
+        },
+        "gridPos": {"h": 10, "w": 24, "x": 0, "y": 26}
+      }
+    ],
+    "time": {"from": "now-24h", "to": "now"},
+    "refresh": "30s",
+    "schemaVersion": 38,
+    "version": 1
+  }
+}

@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroPredict Pro | Live Radar</title>
+    
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+    
+    <style>
+        :root {
+            /* Palette Élégante */
+            --primary: #4361ee;
+            --primary-light: #6c8eff;
+            --primary-dark: #3a56d4;
+            --primary-glow: rgba(67, 97, 238, 0.15);
+            
+            --secondary: #7209b7;
+            --secondary-light: #9d4edd;
+            
+            --success: #06d6a0;
+            --success-dark: #059e7e;
+            --warning: #ffb703;
+            --danger: #ef476f;
+            --info: #4895ef;
+            
+            /* Backgrounds */
+            --bg-page: #f8fafc;
+            --bg-card: #ffffff;
+            --bg-card-hover: #f1f5f9;
+            --border-color: #e2e8f0;
+            
+            /* Textes */
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
+            --text-muted: #94a3b8;
+            
+            /* Ombres */
+            --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+            --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
+            --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
+            --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            
+            /* Gradients */
+            --gradient-primary: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+            --gradient-success: linear-gradient(135deg, #06d6a0 0%, #059e7e 100%);
+            --gradient-warning: linear-gradient(135deg, #ffb703 0%, #fb8500 100%);
+            --gradient-danger: linear-gradient(135deg, #ef476f 0%, #d90429 100%);
+        }
+        
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        body {
+            background: var(--bg-page);
+            font-family: 'Inter', system-ui, sans-serif;
+            color: var(--text-primary);
+            line-height: 1.5;
+            min-height: 100vh;
+        }
+        
+        /* ===== NAVBAR ===== */
+        .navbar-cockpit {
+            background: var(--bg-card);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0.75rem 0;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+            backdrop-filter: blur(10px);
+            background: rgba(255, 255, 255, 0.98);
+        }
+        
+        .nav-brand {
+            font-size: 1.65rem;
+            font-weight: 800;
+            background: var(--gradient-primary);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link-cockpit {
+            color: var(--text-secondary) !important;
+            padding: 0.5rem 1.1rem;
+            border-radius: 40px;
+            font-weight: 500;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .nav-link-cockpit:hover {
+            background: var(--bg-card-hover);
+            color: var(--primary) !important;
+        }
+        
+        .nav-link-cockpit.active {
+            background: var(--gradient-primary);
+            color: white !important;
+            box-shadow: 0 4px 12px rgba(67, 97, 238, 0.25);
+        }
+        
+        /* Avatar utilisateur */
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            background: var(--gradient-primary);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .user-avatar:hover {
+            transform: scale(1.05);
+            box-shadow: 0 0 15px rgba(67, 97, 238, 0.4);
+        }
+        
+        .dropdown-menu-custom {
+            border-radius: 16px;
+            border: 1px solid var(--border-color);
+            box-shadow: var(--shadow-lg);
+            padding: 0.5rem;
+            min-width: 200px;
+        }
+        
+        .dropdown-item-custom {
+            padding: 0.6rem 1rem;
+            border-radius: 12px;
+            transition: all 0.2s;
+            color: var(--text-secondary);
+        }
+        
+        .dropdown-item-custom:hover {
+            background: var(--bg-card-hover);
+            color: var(--primary);
+        }
+        
+        .notification-badge {
+            position: absolute;
+            top: -4px;
+            right: -6px;
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            font-weight: 600;
+            padding: 0.2rem 0.45rem;
+            border-radius: 50px;
+            min-width: 18px;
+            text-align: center;
+        }
+        
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.5rem 0;
+            margin-bottom: 1.5rem;
+        }
+        
+        .page-title {
+            font-size: 1.75rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .page-title i {
+            color: var(--primary);
+        }
+        
+        .live-indicator {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: #ecfdf5;
+            border: 1px solid #a7f3d0;
+            color: var(--success-dark);
+            padding: 0.5rem 1.25rem;
+            border-radius: 50px;
+            font-weight: 500;
+            font-size: 0.85rem;
+        }
+        
+        .live-indicator i {
+            font-size: 0.6rem;
+            animation: pulse 1.5s infinite;
+        }
+        
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.3; }
+        }
+        
+        /* ===== SPLIT LAYOUT ===== */
+        .split-container {
+            display: grid;
+            grid-template-columns: 1fr 400px;
+            gap: 1.5rem;
+            height: calc(100vh - 160px);
+            min-height: 550px;
+        }
+        
+        @media (max-width: 992px) {
+            .split-container {
+                grid-template-columns: 1fr;
+                height: auto;
+            }
+            .right-panel { order: -1; }
+        }
+        
+        /* ===== LEFT PANEL ===== */
+        .left-panel {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 1.25rem;
+            overflow-y: auto;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        
+        .toolbar {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.75rem;
+            margin-bottom: 1.25rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .filter-group {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+        }
+        
+        .filter-btn {
+            background: var(--bg-page);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+            padding: 0.4rem 1rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            transition: all 0.2s;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+        
+        .filter-btn:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary-light);
+            color: var(--primary);
+        }
+        
+        .filter-btn.active {
+            background: var(--gradient-primary);
+            color: white;
+            border-color: transparent;
+        }
+        
+        .filter-btn[data-filter="CRITICAL"].active { background: var(--gradient-danger); }
+        .filter-btn[data-filter="WARNING"].active { background: var(--gradient-warning); }
+        .filter-btn[data-filter="HEALTHY"].active { background: var(--gradient-success); }
+        
+        .search-box {
+            background: var(--bg-page);
+            border: 1px solid var(--border-color);
+            border-radius: 40px;
+            padding: 0.5rem 1rem;
+            font-size: 0.85rem;
+            min-width: 180px;
+            transition: all 0.2s;
+        }
+        
+        .search-box:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 3px var(--primary-glow);
+        }
+        
+        /* Alert Cards */
+        .alert-card {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 18px;
+            padding: 1rem 1.25rem;
+            margin-bottom: 0.75rem;
+            cursor: pointer;
+            transition: all 0.25s;
+            box-shadow: var(--shadow-sm);
+        }
+        
+        .alert-card:hover {
+            transform: translateY(-2px);
+            box-shadow: var(--shadow-lg);
+            border-color: var(--primary-light);
+        }
+        
+        .alert-card.active {
+            border-left: 4px solid var(--primary);
+            background: linear-gradient(90deg, rgba(67, 97, 238, 0.04) 0%, var(--bg-card) 100%);
+        }
+        
+        .alert-critical.active { border-left-color: var(--danger); }
+        .alert-warning.active { border-left-color: var(--warning); }
+        .alert-healthy.active { border-left-color: var(--success); }
+        
+        .alert-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 0.75rem;
+        }
+        
+        .engine-info {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+        
+        .engine-icon {
+            width: 40px;
+            height: 40px;
+            background: var(--bg-page);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--primary);
+            font-size: 1.1rem;
+        }
+        
+        .engine-name {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .engine-meta {
+            display: flex;
+            gap: 0.75rem;
+            color: var(--text-muted);
+            font-size: 0.7rem;
+            margin-top: 0.2rem;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.85rem;
+            border-radius: 40px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.3rem;
+        }
+        
+        .status-critical {
+            background: #fef2f2;
+            color: var(--danger);
+            border: 1px solid #fee2e2;
+        }
+        
+        .status-warning {
+            background: #fffbeb;
+            color: #d97706;
+            border: 1px solid #fef3c7;
+        }
+        
+        .status-healthy {
+            background: #ecfdf5;
+            color: var(--success-dark);
+            border: 1px solid #d1fae5;
+        }
+        
+        .alert-stats {
+            display: flex;
+            gap: 1rem;
+            padding-top: 0.5rem;
+        }
+        
+        .stat-item {
+            flex: 1;
+            text-align: center;
+        }
+        
+        .stat-label {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .stat-value {
+            font-weight: 700;
+            font-size: 0.9rem;
+            color: var(--text-primary);
+        }
+        
+        .stat-value.rul { color: var(--primary); }
+        .stat-value.anomalies { color: var(--warning); }
+        .stat-value.risk { color: var(--danger); }
+        
+        .badge-new {
+            background: var(--danger);
+            color: white;
+            padding: 0.15rem 0.5rem;
+            border-radius: 40px;
+            font-size: 0.6rem;
+            font-weight: 600;
+            margin-left: 0.5rem;
+        }
+        
+        /* ===== RIGHT PANEL ===== */
+        .right-panel {
+            display: flex;
+            align-items: flex-start;
+        }
+        
+        .detail-card {
+            background: var(--bg-card);
+            border-radius: 24px;
+            padding: 1.5rem;
+            width: 100%;
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border-color);
+        }
+        
+        .detail-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+        
+        .gauge-wrapper {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 1rem;
+        }
+        
+        .gauge-center {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            text-align: center;
+        }
+        
+        .gauge-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: var(--text-primary);
+            line-height: 1;
+        }
+        
+        .gauge-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+        
+        .engine-title {
+            font-size: 1.2rem;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+        
+        .info-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .info-item {
+            background: var(--bg-page);
+            padding: 0.75rem;
+            border-radius: 14px;
+        }
+        
+        .info-label {
+            font-size: 0.7rem;
+            color: var(--text-muted);
+            display: block;
+            margin-bottom: 0.25rem;
+        }
+        
+        .info-value {
+            font-weight: 700;
+            font-size: 1rem;
+            color: var(--text-primary);
+        }
+        
+        .info-value.critical { color: var(--danger); }
+        .info-value.warning { color: var(--warning); }
+        .info-value.healthy { color: var(--success-dark); }
+        
+        .section-title {
+            font-weight: 700;
+            font-size: 0.85rem;
+            margin: 1rem 0 0.75rem;
+            color: var(--text-primary);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .action-list {
+            list-style: none;
+            padding: 0;
+        }
+        
+        .action-list li {
+            padding: 0.35rem 0;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            display: flex;
+            align-items: flex-start;
+            gap: 0.5rem;
+        }
+        
+        .action-list li:before {
+            content: "▹";
+            color: var(--primary);
+        }
+        
+        .btn-group {
+            display: flex;
+            gap: 0.75rem;
+            margin-top: 1.5rem;
+            padding-top: 1rem;
+            border-top: 1px solid var(--border-color);
+        }
+        
+        .btn-action {
+            flex: 1;
+            padding: 0.6rem;
+            border-radius: 12px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+        }
+        
+        .btn-primary {
+            background: var(--gradient-primary);
+            color: white;
+        }
+        
+        .btn-primary:hover {
+            transform: translateY(-1px);
+            box-shadow: var(--shadow-md);
+        }
+        
+        .btn-outline {
+            background: var(--bg-page);
+            border: 1px solid var(--border-color);
+            color: var(--text-secondary);
+        }
+        
+        .btn-outline:hover {
+            background: var(--bg-card-hover);
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .empty-state, .click-hint {
+            text-align: center;
+            padding: 3rem 1.5rem;
+        }
+        
+        .empty-state i, .click-hint i {
+            font-size: 3rem;
+            color: var(--primary);
+            opacity: 0.3;
+            margin-bottom: 1rem;
+        }
+        
+        /* Toast */
+        .toast-container {
+            position: fixed;
+            bottom: 1.5rem;
+            right: 1.5rem;
+            z-index: 9999;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            max-width: 360px;
+        }
+        
+        .toast {
+            background: var(--bg-card);
+            border-radius: 16px;
+            padding: 0.85rem 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border-color);
+            animation: slideIn 0.3s ease, fadeOut 0.3s ease 4.7s forwards;
+        }
+        
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(100px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        
+        @keyframes fadeOut {
+            to { opacity: 0; transform: translateX(100px); }
+        }
+        
+        .toast-success { border-left: 4px solid var(--success); }
+        .toast-warning { border-left: 4px solid var(--warning); }
+        .toast-error { border-left: 4px solid var(--danger); }
+        .toast-info { border-left: 4px solid var(--info); }
+        
+        /* Scrollbar */
+        .left-panel::-webkit-scrollbar { width: 5px; }
+        .left-panel::-webkit-scrollbar-track { background: var(--border-color); border-radius: 10px; }
+        .left-panel::-webkit-scrollbar-thumb { background: var(--primary-light); border-radius: 10px; }
+        
+        @media (max-width: 768px) {
+            .page-header { flex-direction: column; align-items: flex-start; gap: 1rem; }
+            .toolbar { flex-direction: column; }
+            .filter-group { justify-content: center; }
+            .search-box { width: 100%; }
+            .info-grid { grid-template-columns: 1fr; }
+            .alert-stats { flex-direction: column; gap: 0.5rem; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- ============================================================ -->
+<!-- NAVBAR AVEC PROFIL ET DÉCONNEXION -->
+<!-- ============================================================ -->
+<nav class="navbar-cockpit">
+    <div class="container-fluid px-3 px-md-4">
+        <div class="d-flex align-items-center justify-content-between flex-wrap">
+            <div class="d-flex align-items-center">
+                <!-- <i class="fas fa-fighter-jet fa-2x me-3" style="color: var(--primary);"></i> -->
+                <a href="{% url 'accueil' %}" class="nav-brand" style="text-decoration: none;">
+                    <i class="fas fa-bolt me-1"></i>AeroPredict Pro
+                </a>
+                <span class="badge ms-3 py-1 px-3" style="background: var(--gradient-primary); color: white; border-radius: 40px;">
+                    <i class="fas fa-microchip me-1"></i>v LSTM
+                </span>
+            </div>
+            
+            <div class="d-flex flex-wrap gap-1 mt-2 mt-sm-0">
+                <!-- <a href="/dashboard/" class="nav-link-cockpit"><i class="fas fa-compass"></i> Cockpit</a> -->
+                <a href="/maintenance/test-radar/" class="nav-link-cockpit active"><i class="fas fa-satellite-dish"></i> Live Radar</a>
+                <a href="/maintenance/history/" class="nav-link-cockpit position-relative">
+                    <i class="fas fa-history"></i> Historique
+                    <span id="notification-badge" class="notification-badge" style="display:none;">0</span>
+                </a>
+                <a href="/maintenance/analytics/" class="nav-link-cockpit"><i class="fas fa-chart-line"></i> Analytics</a>
+                <a href="/maintenance/input/" class="nav-link-cockpit"><i class="fas fa-microchip"></i> Diagnostic</a>
+            </div>
+            
+            <!-- Menu utilisateur connecté -->
+            <div class="dropdown">
+                <div class="user-avatar" data-bs-toggle="dropdown" aria-expanded="false">
+                    {% if user.is_authenticated %}
+                        {{ user.username|slice:":1"|upper }}
+                    {% else %}
+                        <i class="fas fa-user"></i>
+                    {% endif %}
+                </div>
+                <ul class="dropdown-menu dropdown-menu-end dropdown-menu-custom">
+                    {% if user.is_authenticated %}
+                        <li><a class="dropdown-item dropdown-item-custom" href="{% url 'profile' %}">
+                            <i class="fas fa-user-circle me-2"></i>Mon profil
+                        </a></li>
+                        <li><a class="dropdown-item dropdown-item-custom" href="/dashboard/">
+                            <i class="fas fa-tachometer-alt me-2"></i>Tableau de bord
+                        </a></li>
+                        <li><hr class="dropdown-divider"></li>
+                        <li><a class="dropdown-item dropdown-item-custom text-danger" href="{% url 'deconnexion' %}">
+                            <i class="fas fa-sign-out-alt me-2"></i>Déconnexion
+                        </a></li>
+                    {% else %}
+                        <li><a class="dropdown-item dropdown-item-custom" href="{% url 'connexion' %}">
+                            <i class="fas fa-sign-in-alt me-2"></i>Connexion
+                        </a></li>
+                        <li><a class="dropdown-item dropdown-item-custom" href="{% url 'inscription' %}">
+                            <i class="fas fa-user-plus me-2"></i>Inscription
+                        </a></li>
+                    {% endif %}
+                </ul>
+            </div>
+        </div>
+    </div>
+</nav>
+
+<!-- ============================================================ -->
+<!-- MAIN CONTENT -->
+<!-- ============================================================ -->
+<div class="container-fluid px-3 px-md-4">
+    
+    <!-- Header -->
+    <div class="page-header">
+        <h1 class="page-title"><i class="fas fa-radar"></i> Live Radar</h1>
+        <div class="live-indicator">
+            <i class="fas fa-circle"></i> Surveillance en temps réel
+        </div>
+    </div>
+    
+    <!-- Split Layout -->
+    <div class="split-container">
+        
+        <!-- LEFT PANEL - Liste des alertes -->
+        <div class="left-panel">
+            <div class="toolbar">
+                <div class="filter-group">
+                    <button class="filter-btn active" data-filter="all"><i class="fas fa-list"></i> Toutes</button>
+                    <button class="filter-btn" data-filter="unread"><i class="fas fa-circle" style="color:var(--danger);font-size:0.5rem;"></i> Non lues</button>  <!-- ← AJOUTE CECI -->
+                    <button class="filter-btn" data-filter="CRITICAL"><i class="fas fa-circle" style="color:var(--danger);font-size:0.5rem;"></i> Critiques</button>
+                    <button class="filter-btn" data-filter="WARNING"><i class="fas fa-circle" style="color:var(--warning);font-size:0.5rem;"></i> Attention</button>
+                    <button class="filter-btn" data-filter="HEALTHY"><i class="fas fa-circle" style="color:var(--success);font-size:0.5rem;"></i> Sains</button>
+                </div>
+                <input type="text" id="search-input" class="search-box" placeholder="🔍 Rechercher un moteur...">
+            </div>
+            
+            <div id="alerts-list">
+                <div class="empty-state">
+                    <i class="fas fa-satellite-dish"></i>
+                    <h6>En attente de signaux</h6>
+                    <p class="text-muted small">Les alertes apparaîtront ici en temps réel</p>
+                </div>
+            </div>
+        </div>
+        
+        <!-- RIGHT PANEL - Détails -->
+        <div class="right-panel">
+            <div class="detail-card" id="detail-panel">
+                <div class="click-hint">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <h6>Sélectionnez une alerte</h6>
+                    <p class="text-muted small">pour voir les détails et les actions recommandées</p>
+                </div>
+            </div>
+        </div>
+        
+    </div>
+</div>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toast-container"></div>
+
+<script>
+const app = (function() {
+    let alerts = [], filteredAlerts = [];
+    let currentFilter = 'all', searchQuery = '';
+    let selectedAlert = null;
+    let healthChart = null;
+    
+    const alertsList = document.getElementById('alerts-list');
+    const detailPanel = document.getElementById('detail-panel');
+    const searchInput = document.getElementById('search-input');
+    
+    const showToast = (title, message, type = 'success') => {
+        const toast = document.createElement('div');
+        toast.className = `toast toast-${type}`;
+        toast.innerHTML = `
+            <div>
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'warning' ? 'exclamation-triangle' : type === 'error' ? 'times-circle' : 'info-circle'} fa-lg" style="color: ${type === 'success' ? 'var(--success)' : type === 'warning' ? 'var(--warning)' : type === 'error' ? 'var(--danger)' : 'var(--info)'}"></i>
+            </div>
+            <div style="flex:1">
+                <div class="fw-semibold small">${title}</div>
+                <div class="text-muted small">${message}</div>
+            </div>
+        `;
+        document.getElementById('toast-container').appendChild(toast);
+        setTimeout(() => toast.remove(), 5000);
+    };
+    
+    const formatTime = (ts) => {
+        if (!ts) return '--';
+        const d = new Date(ts);
+        return d.toLocaleString('fr-FR', { hour: '2-digit', minute: '2-digit', day: '2-digit', month: 'short' });
+    };
+    
+    const getColorForHealth = (score) => {
+        if (score < 30) return '#ef476f';
+        if (score < 60) return '#ffb703';
+        return '#06d6a0';
+    };
+    
+    function createGauge(value) {
+        const canvas = document.createElement('canvas');
+        canvas.id = 'healthGauge';
+        canvas.width = 160;
+        canvas.height = 160;
+        
+        return new Chart(canvas, {
+            type: 'doughnut',
+            data: {
+                datasets: [{
+                    data: [value, 100 - value],
+                    backgroundColor: [getColorForHealth(value), '#e2e8f0'],
+                    borderWidth: 0,
+                    cutout: '75%',
+                    circumference: 180,
+                    rotation: 270
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: true,
+                plugins: { tooltip: { enabled: false }, legend: { display: false } }
+            }
+        });
+    }
+    
+    function renderAlerts() {
+        filteredAlerts = alerts.filter(a => {
+            const matchFilter = currentFilter === 'all' || a.status?.includes(currentFilter);
+            const matchSearch = !searchQuery || a.engine_id?.toLowerCase().includes(searchQuery.toLowerCase());
+            return matchFilter && matchSearch;
+        });
+        
+        if (!filteredAlerts.length) {
+            alertsList.innerHTML = `
+                <div class="empty-state">
+                    <i class="fas fa-satellite-dish"></i>
+                    <h6>${alerts.length ? 'Aucune alerte trouvée' : 'En attente de signaux'}</h6>
+                    <p class="text-muted small">${alerts.length ? 'Essayez de modifier vos filtres' : 'Les alertes apparaîtront ici'}</p>
+                </div>
+            `;
+            return;
+        }
+        
+        alertsList.innerHTML = filteredAlerts.map((a, idx) => {
+            const statusClass = a.status?.includes('CRITICAL') ? 'critical' : a.status?.includes('WARNING') ? 'warning' : 'healthy';
+            const isSelected = selectedAlert?.id === a.id ? 'active' : '';
+            const isNew = !a.is_read;
+            
+            return `
+                <div class="alert-card alert-${statusClass} ${isSelected}" onclick="app.selectAlert('${a.id}')">
+                    <div class="alert-header">
+                        <div class="engine-info">
+                            <div class="engine-icon"><i class="fas fa-engine"></i></div>
+                            <div>
+                                <div class="engine-name">
+                                    ${a.engine_id || '--'}
+                                    ${isNew ? '<span class="badge-new">NOUVEAU</span>' : ''}
+                                </div>
+                                <div class="engine-meta">
+                                    <span><i class="far fa-clock"></i> ${formatTime(a.timestamp)}</span>
+                                    <span><i class="fas fa-chart-line"></i> Cycle ${a.cycle || '?'}</span>
+                                </div>
+                            </div>
+                        </div>
+                        <span class="status-badge status-${statusClass}">
+                            ${a.status || 'INCONNU'}
+                        </span>
+                    </div>
+                    <div class="alert-stats">
+                        <div class="stat-item">
+                            <div class="stat-label">RUL</div>
+                            <div class="stat-value rul">${a.rul ? Math.round(a.rul) + 'c' : '--'}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Anomalies</div>
+                            <div class="stat-value anomalies">${a.anomalies_count || 0}</div>
+                        </div>
+                        <div class="stat-item">
+                            <div class="stat-label">Risque</div>
+                            <div class="stat-value risk">${a.diagnosis?.global_risk_score ? a.diagnosis.global_risk_score + '%' : '--'}</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    }
+    
+    function renderDetails(alert) {
+        if (!alert) {
+            detailPanel.innerHTML = `
+                <div class="click-hint">
+                    <i class="fas fa-mouse-pointer"></i>
+                    <h6>Sélectionnez une alerte</h6>
+                    <p class="text-muted small">pour voir les détails et les actions recommandées</p>
+                </div>
+            `;
+            return;
+        }
+        
+        const d = alert.diagnosis || {};
+        const healthScore = alert.health_index ? Math.round(alert.health_index * 100) : 
+                           (alert.rul ? Math.round((alert.rul / 125) * 100) : 75);
+        
+        if (healthChart) {
+            healthChart.data.datasets[0].data = [healthScore, 100 - healthScore];
+            healthChart.data.datasets[0].backgroundColor = [getColorForHealth(healthScore), '#e2e8f0'];
+            healthChart.update();
+        }
+        
+        detailPanel.innerHTML = `
+            <div class="detail-header">
+                <div class="gauge-wrapper">
+                    <canvas id="healthGauge" width="160" height="160"></canvas>
+                    <div class="gauge-center">
+                        <div class="gauge-value" id="gaugeValue">${healthScore}%</div>
+                        <div class="gauge-label">Santé</div>
+                    </div>
+                </div>
+                <h5 class="engine-title">${alert.engine_id}</h5>
+                <span class="status-badge ${alert.status?.includes('CRITICAL') ? 'status-critical' : alert.status?.includes('WARNING') ? 'status-warning' : 'status-healthy'}">
+                    ${alert.status || 'INCONNU'}
+                </span>
+            </div>
+            
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">RUL estimé</span>
+                    <span class="info-value ${healthScore < 30 ? 'critical' : healthScore < 60 ? 'warning' : 'healthy'}">
+                        ${alert.rul ? Math.round(alert.rul) + ' cycles' : '--'}
+                    </span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Anomalies</span>
+                    <span class="info-value">${alert.anomalies_count || 0}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Criticité</span>
+                    <span class="info-value critical">${d.global_risk_score ? d.global_risk_score + '%' : '--'}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Dernier cycle</span>
+                    <span class="info-value">${alert.cycle || '--'}</span>
+                </div>
+            </div>
+            
+            ${d.summary ? `
+                <div class="section-title"><i class="fas fa-clipboard-list"></i> Diagnostic</div>
+                <p class="small text-secondary">${d.summary}</p>
+            ` : ''}
+            
+            ${!alert.status?.includes('HEALTHY') && d.actions?.length ? `
+                <div class="section-title"><i class="fas fa-wrench"></i> Actions recommandées</div>
+                <ul class="action-list">
+                    ${d.actions.map(a => `<li>${a}</li>`).join('')}
+                </ul>
+            ` : ''}
+            
+            <div class="btn-group">
+                <button class="btn-action btn-outline" onclick="app.markAsRead('${alert.id}')">
+                    <i class="fas fa-check"></i> Marquer lu
+                </button>
+                <button class="btn-action btn-primary" onclick="app.viewFullReport('${alert.id}')">
+                    <i class="fas fa-file-alt"></i> Rapport
+                </button>
+            </div>
+        `;
+        
+        setTimeout(() => {
+            const canvas = document.getElementById('healthGauge');
+            if (canvas) {
+                if (!healthChart) {
+                    healthChart = createGauge(healthScore);
+                    canvas.replaceWith(healthChart.canvas);
+                } else {
+                    healthChart.canvas = canvas;
+                    healthChart.ctx = canvas.getContext('2d');
+                    healthChart.update();
+                }
+            }
+        }, 50);
+    }
+    
+    function selectAlert(id) {
+        selectedAlert = alerts.find(a => a.id == id);
+        renderAlerts();
+        renderDetails(selectedAlert);
+    }
+    
+    async function markAsRead(id) {
+        try {
+            await fetch(`/maintenance/api/alert/${id}/read/`, { method: 'POST' });
+            const alert = alerts.find(a => a.id == id);
+            if (alert) alert.is_read = true;
+            if (selectedAlert?.id == id) selectedAlert.is_read = true;
+            renderAlerts();
+            if (selectedAlert) renderDetails(selectedAlert);
+            showToast('Alerte lue', 'L\'alerte a été marquée comme lue', 'success');
+        } catch (err) {
+            showToast('Erreur', 'Impossible de marquer comme lu', 'error');
+        }
+    }
+    
+    function viewFullReport(id) {
+        showToast('Rapport', `Génération du rapport pour l'alerte #${id}...`, 'info');
+    }
+    
+    function setFilter(filter) {
+        currentFilter = filter;
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.classList.toggle('active', btn.dataset.filter === filter);
+        });
+        renderAlerts();
+    }
+    
+    async function loadAlerts() {
+        try {
+            const res = await fetch('/maintenance/api/recent-alerts/');
+            const data = await res.json();
+            console.log('📡 Alertes reçues:', data);  // ← AJOUTE CECI
+            alerts = data.alerts || [];
+            renderAlerts();
+        } catch (err) {
+            console.error('Erreur chargement:', err);
+        }
+    }
+    
+    function connectWebSocket() {
+        const protocol = window.location.protocol === 'https:' ? 'wss:' : 'ws:';
+        const ws = new WebSocket(`${protocol}//${window.location.host}/ws/alerts/fleet/`);
+        
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                if (!alerts.some(a => a.id === data.id)) {
+                    alerts.unshift(data);
+                    if (alerts.length > 50) alerts.pop();
+                    renderAlerts();
+                    updateBadge();
+                    showToast('Nouvelle alerte', `${data.engine_id} - ${data.status}`, 'warning');
+                }
+            } catch (e) { console.error('WebSocket error:', e); }
+        };
+        
+        ws.onclose = () => setTimeout(connectWebSocket, 3000);
+        ws.onerror = (err) => console.error('WebSocket error:', err);
+    }
+    
+    async function updateBadge() {
+        try {
+            const res = await fetch('/maintenance/api/unread-count/');
+            const data = await res.json();
+            const badge = document.getElementById('notification-badge');
+            if (badge) {
+                badge.textContent = data.unread_count || 0;
+                badge.style.display = data.unread_count > 0 ? 'inline-block' : 'none';
+            }
+        } catch (err) {}
+    }
+    
+    function init() {
+        loadAlerts();
+        connectWebSocket();
+        updateBadge();
+        setInterval(updateBadge, 5000);
+        
+        searchInput?.addEventListener('input', (e) => {
+            searchQuery = e.target.value;
+            renderAlerts();
+        });
+        
+        document.querySelectorAll('.filter-btn').forEach(btn => {
+            btn.addEventListener('click', () => setFilter(btn.dataset.filter));
+        });
+    }
+    
+    return { init, selectAlert, markAsRead, viewFullReport, setFilter };
+})();
+
+document.addEventListener('DOMContentLoaded', app.init);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

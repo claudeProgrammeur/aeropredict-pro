@@ -1,0 +1,1 @@
+{"class":"org.apache.spark.ml.feature.VectorAssembler","timestamp":1776092494491,"sparkVersion":"4.0.2","uid":"VectorAssembler_7dc45265e0ad","paramMap":{"outputCol":"settings_vec","inputCols":["Altitude","Nombre_Mach","Regime_Moteur"]},"defaultParamMap":{"outputCol":"VectorAssembler_7dc45265e0ad__output","handleInvalid":"error"}}

@@ -1,0 +1,12 @@
+# render.yaml
+services:
+  - type: web
+    name: aeropredict
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: daphne -b 0.0.0.0 -p 10000 aeronoth.asgi:application
+    envVars:
+      - key: DJANGO_SETTINGS_MODULE
+        value: aeronoth.settings
+      - key: PYTHON_VERSION
+        value: 3.11.0

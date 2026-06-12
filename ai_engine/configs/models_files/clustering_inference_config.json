@@ -1,0 +1,1 @@
+{"feature_cols_for_kmeans": ["Altitude", "Nombre_Mach", "Regime_Moteur"], "model_source": "models/kmeans_flight_regimes", "output_col_name": "cluster"}

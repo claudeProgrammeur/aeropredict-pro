@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AeroPredict Pro | Détail Entraînement</title>
+    
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root {
+            --primary: #4361ee;
+            --gradient: linear-gradient(135deg, #4361ee 0%, #7209b7 100%);
+            --success: #06d6a0;
+            --warning: #ffb703;
+            --danger: #ef476f;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-600: #475569;
+            --gray-800: #1e293b;
+            --dark: #0f172a;
+        }
+        
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--gray-50);
+            color: var(--gray-800);
+        }
+        
+        .navbar {
+            background: rgba(255,255,255,0.98);
+            backdrop-filter: blur(10px);
+            padding: 0.8rem 0;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+            position: fixed;
+            width: 100%;
+            top: 0;
+            z-index: 1000;
+        }
+        
+        .navbar-brand {
+            font-size: 1.6rem;
+            font-weight: 800;
+            background: var(--gradient);
+            -webkit-background-clip: text;
+            background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        
+        .page-header {
+            padding-top: 100px;
+            padding-bottom: 30px;
+        }
+        
+        .page-title {
+            font-size: 1.8rem;
+            font-weight: 700;
+        }
+        
+        .info-card {
+            background: white;
+            border-radius: 20px;
+            border: 1px solid var(--gray-200);
+            padding: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+        
+        .metric-box {
+            background: var(--gray-50);
+            border-radius: 16px;
+            padding: 1rem;
+            text-align: center;
+        }
+        
+        .metric-value {
+            font-size: 1.8rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+        
+        .message-box {
+            background: var(--gray-100);
+            border-radius: 16px;
+            padding: 1.5rem;
+            white-space: pre-line;
+            font-size: 0.9rem;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 40px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+        
+        .status-success { background: #06d6a020; color: #06d6a0; }
+        .status-failed { background: #ef476f20; color: #ef476f; }
+        
+        .health-critical { color: #ef476f; }
+        .health-warning { color: #ffb703; }
+        .health-healthy { color: #06d6a0; }
+        
+        .btn-back {
+            background: var(--gradient);
+            color: white;
+            border: none;
+            padding: 0.5rem 1.5rem;
+            border-radius: 40px;
+            transition: all 0.3s;
+        }
+        
+        .btn-back:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(67,97,238,0.3);
+        }
+        
+        .footer {
+            background: var(--dark);
+            color: var(--gray-400);
+            padding: 40px 0 20px;
+            margin-top: 60px;
+        }
+        
+        @media (max-width: 768px) {
+            .page-header { padding-top: 80px; }
+            .metric-value { font-size: 1.2rem; }
+        }
+    </style>
+</head>
+<body>
+
+<nav class="navbar navbar-expand-lg">
+    <div class="container">
+        <a class="navbar-brand" href="{% url 'accueil' %}"><i class="fas fa-fighter-jet me-2"></i>AeroPredict Pro</a>
+    </div>
+</nav>
+
+<div class="container">
+    <div class="page-header d-flex justify-content-between align-items-center flex-wrap">
+        <h1 class="page-title"><i class="fas fa-chart-line me-2" style="color: var(--primary);"></i>Détail de l'entraînement</h1>
+        <a href="training-history/" class="btn btn-back"><i class="fas fa-arrow-left me-2"></i>Retour</a>
+    </div>
+    
+    <div id="detail-container">
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2">Chargement...</p>
+        </div>
+    </div>
+</div>
+
+<footer class="footer">
+    <div class="container text-center">
+        <p>&copy; 2024 AeroPredict Pro. Tous droits réservés.</p>
+    </div>
+</footer>
+
+<script>
+    const historyId = window.location.pathname.split('/').filter(Boolean).pop();
+    
+    async function loadDetail() {
+        const container = document.getElementById('detail-container');
+        
+        try {
+            const response = await fetch(`/api/training-history/${historyId}/`);
+            const t = await response.json();
+            
+            if (t.error) {
+                container.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                        <h5>Entraînement non trouvé</h5>
+                        <p class="text-muted">L'entraînement #${historyId} n'existe pas</p>
+                        <a href="/maintenance/training-history/" class="btn btn-primary mt-2">Retour à l'historique</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            let statusClass = '';
+            let statusText = '';
+            let healthClass = '';
+            
+            switch(t.status) {
+                case 'SUCCESS': statusClass = 'status-success'; statusText = '✅ Réussi'; break;
+                case 'FAILED': statusClass = 'status-failed'; statusText = '❌ Échoué'; break;
+                default: statusClass = 'status-pending'; statusText = t.status;
+            }
+            
+            if (t.health_status === 'HEALTHY') healthClass = 'health-healthy';
+            else if (t.health_status === 'WARNING') healthClass = 'health-warning';
+            else if (t.health_status === 'CRITICAL') healthClass = 'health-critical';
+            
+            const date = new Date(t.started_at);
+            const formattedDate = date.toLocaleString('fr-FR');
+            
+            container.innerHTML = `
+                <div class="info-card">
+                    <div class="d-flex justify-content-between align-items-center flex-wrap mb-3">
+                        <h4>Entraînement #${t.id}</h4>
+                        <span class="status-badge ${statusClass}">${statusText}</span>
+                    </div>
+                    
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-3 col-6">
+                            <div class="metric-box">
+                                <div class="metric-value">${t.samples_count || 0}</div>
+                                <div class="small text-muted">Échantillons</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-box">
+                                <div class="metric-value">${t.epochs || 0}</div>
+                                <div class="small text-muted">Époques</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-box">
+                                <div class="metric-value">${t.global_score || 0}/100</div>
+                                <div class="small text-muted">Score global</div>
+                            </div>
+                        </div>
+                        <div class="col-md-3 col-6">
+                            <div class="metric-box">
+                                <div class="metric-value">${t.duration_seconds ? t.duration_seconds.toFixed(1) + 's' : '--'}</div>
+                                <div class="small text-muted">Durée</div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="row mb-4">
+                        <div class="col-md-6">
+                            <strong>RMSE avant:</strong> ${t.rmse_before ? t.rmse_before.toFixed(2) : '--'} cycles
+                        </div>
+                        <div class="col-md-6">
+                            <strong>RMSE après:</strong> ${t.rmse_after ? t.rmse_after.toFixed(2) : '--'} cycles
+                        </div>
+                        <div class="col-md-6 mt-2">
+                            <strong>R² avant:</strong> ${t.r2_before ? t.r2_before.toFixed(4) : '--'}
+                        </div>
+                        <div class="col-md-6 mt-2">
+                            <strong>R² après:</strong> ${t.r2_after ? t.r2_after.toFixed(4) : '--'}
+                        </div>
+                    </div>
+                    
+                    ${t.predicted_rul ? `
+                        <div class="row mb-4">
+                            <div class="col-md-6">
+                                <div class="metric-box">
+                                    <div class="metric-value">${Math.round(t.predicted_rul)} cycles</div>
+                                    <div class="small text-muted">RUL prédite</div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="metric-box">
+                                    <div class="metric-value ${healthClass}">${t.health_status || 'INCONNU'}</div>
+                                    <div class="small text-muted">État de santé</div>
+                                </div>
+                            </div>
+                        </div>
+                    ` : ''}
+                    
+                    ${t.short_message ? `
+                        <div class="alert alert-info">
+                            <i class="fas fa-info-circle me-2"></i> ${t.short_message}
+                        </div>
+                    ` : ''}
+                    
+                    ${t.long_message ? `
+                        <div class="message-box">
+                            <strong><i class="fas fa-file-alt me-2"></i>Rapport détaillé</strong>
+                            <pre class="mt-2 mb-0" style="white-space: pre-wrap; font-family: inherit; background: transparent; border: none; padding: 0;">${t.long_message}</pre>
+                        </div>
+                    ` : ''}
+                    
+                    ${t.causes && t.causes.length ? `
+                        <div class="mt-3">
+                            <strong><i class="fas fa-search me-2"></i>Causes détectées</strong>
+                            <ul class="mt-2">
+                                ${t.causes.map(c => `<li>${c}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    ${t.actions && t.actions.length ? `
+                        <div class="mt-3">
+                            <strong><i class="fas fa-wrench me-2"></i>Actions recommandées</strong>
+                            <ul class="mt-2">
+                                ${t.actions.map(a => `<li>${a}</li>`).join('')}
+                            </ul>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="text-muted small mt-4">
+                        <i class="far fa-calendar-alt me-1"></i> Lancé le: ${formattedDate}<br>
+                        ${t.completed_at ? `<i class="far fa-check-circle me-1"></i> Terminé le: ${new Date(t.completed_at).toLocaleString('fr-FR')}` : ''}
+                    </div>
+                </div>
+            `;
+            
+        } catch (error) {
+            console.error('Erreur:', error);
+            container.innerHTML = `
+                <div class="text-center py-5">
+                    <i class="fas fa-exclamation-triangle fa-3x text-danger mb-3"></i>
+                    <h5>Erreur de chargement</h5>
+                    <p class="text-muted">Impossible de charger les détails de l'entraînement</p>
+                </div>
+            `;
+        }
+    }
+    
+    document.addEventListener('DOMContentLoaded', loadDetail);
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>

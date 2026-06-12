@@ -1,0 +1,205 @@
+{
+  "metadata": {
+    "source": "NASA PHM C-MAPSS + Saxena Exponential Damage Model",
+    "version": "7.0-FINAL-PRODUCTION",
+    "engine_type": "Turbofan 90k lbs",
+    "runtime_mode": "industrial_phm_engine",
+    "ai_pipeline": {
+      "input_shape": [null, 50, 42],
+      "normalization": "z-score_standardization",
+      "feature_engineering": "rolling_mean(5) + delta_t + raw_signals"
+    }
+  },
+  "failure_model": {
+    "type": "physics_inspired_exponential",
+    "equation": "h(t) = exp(-a * t^b)",
+    "parameters": { "alpha": 0.001, "beta": 1.2 },
+    "health_index_rule": "min(fan_margin, hpc_margin, lpc_margin, egt_margin)",
+    "nasa_alignment": "TRL-9 (Technology Readiness Level)"
+  },
+  "execution_mode": {
+    "type": "streaming_inference",
+    "batch_size": 1,
+    "windowing": { "size": 50, "stride": 1 }
+  },
+  "ai_runtime_binding": {
+    "clustering_engine": {
+      "method": "KMeans_Condition_Identification",
+      "contexts": {
+        "0": { "label": "Sea_Level_Standard", "multiplier": 1.0, "risk_bias": 0.0 },
+        "1": { "label": "High_Altitude_Cruise", "multiplier": 1.3, "risk_bias": 0.1 },
+        "2": { "label": "High_Mach_Stress", "multiplier": 1.5, "risk_bias": 0.15 },
+        "3": { "label": "Transient_Regime_Anomalous", "multiplier": 1.2, "risk_bias": 0.05 }
+      }
+    },
+ "execution_contract": {
+   "pipeline_order": [
+    "preprocessing_pipeline",
+    "feature_tensor_builder",
+    "ai_engine_binding",
+    "clustering_engine",
+    "causal_graph_engine",
+    "risk_engine_industrial",
+    "event_alert_engine",
+    "explainability_engine"
+],
+
+    "runtime_input": "float[50][42]",
+    "runtime_output": {
+        "rul": "int",
+        "health_index": "float",
+        "risk_score": "float",
+        "cluster_id": "int"
+    }
+},
+    "ai_engine_binding": {
+      "lstm_model": {
+        "framework": "pytorch",
+        "input": "feature_tensor_builder.output",
+        "output": {
+          "rul": "remaining_useful_life",
+          "health_index": "0_to_1",
+          "anomaly_vector": "per_sensor_scores"
+        }
+      }
+    },
+    "feature_mapping_42": {
+      "description": "Mapping complet des 42 features (14 Raw + 14 Rolling + 14 Delta)",
+      "sensors": {
+        "s2":  { "raw": 0, "rolling": 14, "delta": 28, "weight": 0.2 },
+        "s3":  { "raw": 1, "rolling": 15, "delta": 29, "weight": 0.5 },
+        "s4":  { "raw": 2, "rolling": 16, "delta": 30, "weight": 0.6 },
+        "s7":  { "raw": 3, "rolling": 17, "delta": 31, "weight": 0.4 },
+        "s8":  { "raw": 4, "rolling": 18, "delta": 32, "weight": 0.3 },
+        "s11": { "raw": 5, "rolling": 19, "delta": 33, "weight": 0.4 },
+        "s12": { "raw": 6, "rolling": 20, "delta": 34, "weight": 0.4 },
+        "s13": { "raw": 7, "rolling": 21, "delta": 35, "weight": 0.3 },
+        "s14": { "raw": 8, "rolling": 22, "delta": 36, "weight": 0.3 },
+        "s15": { "raw": 9, "rolling": 23, "delta": 37, "weight": 0.5 },
+        "s17": { "raw": 10, "rolling": 24, "delta": 38, "weight": 0.5 },
+        "s20": { "raw": 11, "rolling": 25, "delta": 39, "weight": 0.7 },
+        "s21": { "raw": 12, "rolling": 26, "delta": 40, "weight": 0.4 },
+        "s24": { "raw": 13, "rolling": 27, "delta": 41, "weight": 0.3 }
+      }
+    }
+  },
+  "preprocessing_pipeline": {
+    "steps": [
+      "load_raw_sensor_vector",
+      "apply_zscore_normalization",
+      "build_rolling_features",
+      "compute_delta_features",
+      "assemble_tensor_50x42"
+    ]
+  },
+  "causal_graph_engine": {
+    "nodes": {
+      "s2": { "type": "airflow", "criticality": 2 },
+      "s3": { "type": "hpc_efficiency", "criticality": 4 },
+      "s4": { "type": "thermal_egt", "criticality": 5 },
+      "s7": { "type": "pressure_leak", "criticality": 3 },
+      "s20": { "type": "stall_margin", "criticality": 5 }
+    },
+    "edges": [
+      { "from": "s2", "to": "s3", "weight": 0.7, "delay_steps": 1, "relation": "airflow_degradation" },
+      { "from": "s3", "to": "s4", "weight": 0.8, "delay_steps": 2, "relation": "efficiency_loss" },
+      { "from": "s3", "to": "s20", "weight": 0.6, "delay_steps": 1, "relation": "instability_risk" },
+      { "from": "s4", "to": "s20", "weight": 0.5, "delay_steps": 1, "relation": "thermal_stall_impact" },
+      { "from": "s20", "to": "global_failure", "weight": 1.0, "relation": "stall_event" }
+    ],
+    "propagation_model": {
+      "type": "weighted_decay_propagation",
+      "formula": "impact(t+1) = impact(t) * weight * exp(-decay)"
+    }
+  },
+  "knowledge_base": {
+    "s3": {
+      "name": "Temp HPC Outlet",
+      "component": "HPC",
+      "criticality": "HIGH",
+      "physics": "Efficiency_Loss_Proxy",
+      "causal_links": ["s4", "s20"],
+      "thresholds": { "zscore": 2.2, "delta_max": 0.08 },
+      "diagnostic": {
+        "causes": ["Blade Erosion", "Cooling Leak"],
+        "actions": ["Engine Wash", "HPC Endoscopy"]
+      }
+    },
+    "s20": {
+      "name": "HPC Pressure Ratio",
+      "component": "HPC",
+      "criticality": "CRITICAL",
+      "physics": "Stall_Margin_Monitor",
+      "causal_links": ["global_failure"],
+      "thresholds": { "zscore": 1.5, "always_critical": true },
+      "diagnostic": {
+        "causes": ["Compressor Surge", "Aero Instability"],
+        "actions": ["Immediate Power Reduction", "Full Safety Check"]
+      }
+    }
+  },
+  "risk_engine_industrial": {
+    "scoring_formula": "Risk = Sigmoid(Σ (anomaly_score[i] * weight[i]) * cluster_multiplier)",
+    "thresholds": {
+      "nominal": { "limit": 0.4, "status": "HEALTHY", "color": "#00FF00" },
+      "degraded": { "limit": 0.75, "status": "WARNING", "color": "#FFFF00" },
+      "failed": { "limit": 1.0, "status": "CRITICAL", "color": "#FF0000" }
+    },
+    "regularization": {
+      "false_alarm_filter": "moving_average_risk(3_cycles)",
+      "persistence_check": "anomaly_must_last_2_cycles"
+    }
+  },
+  "alert_engine": {
+    "protocols": {
+      "WARNING": ["update_dashboard", "send_maintenance_email"],
+      "CRITICAL": ["trigger_emergency_ui", "push_notification_mobile", "generate_ticket_AOG"]
+    }
+  },
+  "ui_mapping": {
+    "fr": {
+      "HPC": "Compresseur Haute Pression",
+      "LPT": "Turbine Basse Pression",
+      "RUL_label": "Vie Utile Restante",
+      "health_score": "Indice de Santé"
+    }
+  },
+  "event_alert_engine": {
+    "rules": [
+      {
+        "condition": "risk_score > 0.85 AND s20.zscore > 1.5",
+        "event": "STALL_RISK_CRITICAL",
+        "actions": ["trigger_aog_alert", "freeze_throttle", "create_ticket"]
+      },
+      {
+        "condition": "causal_path(s2 -> s3 -> s20) active",
+        "event": "DEGRADATION_CHAIN_DETECTED",
+        "actions": ["increase_monitoring", "notify_engineer"]
+      }
+    ]
+  },
+  "explainability_engine": {
+    "method": "causal_attribution_scoring",
+    "output_format": {
+      "top_contributors": ["s3", "s20", "s4"],
+      "reasoning_chain": "s2 → s3 → s4 → s20",
+      "plain_explanation": "HPC efficiency loss is propagating to thermal overload",
+      "confidence": 0.92
+    }
+  },
+  "saas_layer": {
+    "multi_tenant": true,
+    "tenant_isolation": { "data": "strict", "models": "shared_base" },
+    "versioning": { "model_version": "v7.0", "schema_version": "v7.0" }
+  },
+  "validation_layer": {
+    "schema_check": true,
+    "feature_size_enforcement": 42,
+    "nan_handling": "forward_fill",
+    "outlier_handling": "clip_3sigma",
+    "runtime_safety": {
+      "fail_on_shape_mismatch": true,
+      "fail_on_missing_sensor": false
+    }
+  }
+}

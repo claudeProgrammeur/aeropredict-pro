@@ -1,0 +1,5 @@
+{
+  "sensor_9": {"name": "Temperature_HPC", "unit": "°R", "critical_threshold": 650},
+  "sensor_14": {"name": "Pressure_Fan", "unit": "psia", "critical_threshold": 45}
+  
+}

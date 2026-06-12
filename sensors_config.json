@@ -1,0 +1,1 @@
+{"useful_sensors": ["s_2", "s_3", "s_4", "s_7", "s_8", "s_9", "s_11", "s_12", "s_13", "s_14", "s_15", "s_17", "s_20", "s_21"], "dead_sensors": ["s_1", "s_10", "s_16", "s_18", "s_19", "s_5", "s_6"], "settings": ["Altitude", "Nombre_Mach", "Regime_Moteur"], "base_columns": ["unique_id", "dataset_id", "unit_number", "Cycle_Vie"]}

@@ -1,0 +1,14 @@
+
+# monitoring/alerts/alerte1_rul_critical.yaml
+groups:
+  - name: aeropredict_critical_alerts
+    rules:
+      - alert: RUL_Critical_Low
+        expr: aeropredict_rul_current < 15
+        for: 1m
+        labels:
+          severity: critical
+          action: maintenance_required
+        annotations:
+          summary: "🔴 Moteur {{ $labels.engine_id }} en état critique"
+          description: "RUL prédit: {{ $value }} cycles. Intervention requise sous 24h."

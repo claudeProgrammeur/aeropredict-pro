@@ -1,0 +1,12 @@
+groups:
+  - name: aeropredict_warning_alerts
+    rules:
+      - alert: RUL_Rapid_Degradation
+        expr: rate(aeropredict_rul_current[1h]) < -0.0056
+        for: 5m
+        labels:
+          severity: warning
+          action: investigate
+        annotations:
+          summary: "🟠 Dégradation accélérée sur {{ $labels.engine_id }}"
+          description: "RUL chute de >20 cycles/h. Vérifier les capteurs."

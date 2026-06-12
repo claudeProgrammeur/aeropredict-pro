@@ -1,0 +1,12 @@
+groups:
+  - name: aeropredict_system_alerts
+    rules:
+      - alert: Celery_Task_Error
+        expr: rate(aeropredict_tasks_total{status="error"}[5m]) > 0
+        for: 2m
+        labels:
+          severity: system
+          action: check_logs
+        annotations:
+          summary: "⚙️ Échec d'analyse pour {{ $labels.engine_id }}"
+          description: "Vérifier les logs Celery et la connexion au modèle IA."

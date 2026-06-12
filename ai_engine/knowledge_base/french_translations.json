@@ -1,0 +1,99 @@
+{
+  "sensor_names": {
+    "s2": "Température Entrée LPC",
+    "s3": "Température Sortie HPC",
+    "s4": "Température Sortie LPT",
+    "s7": "Pression Sortie HPC",
+    "s8": "Vitesse Physique Fan",
+    "s9": "Vitesse Physique Core",
+    "s11": "Pression Sortie LPT",
+    "s12": "Vitesse Sortie HPC",
+    "s13": "Vitesse Sortie LPC",
+    "s14": "Vitesse Bypass",
+    "s15": "Pression Bouchon",
+    "s17": "Vitesse Rotation HPC",
+    "s20": "Rapport Pression HPC",
+    "s21": "Pression Entrée Fan",
+    "Temp_Entree_LPC": "Température Entrée LPC",
+    "Temp_Sortie_HPC": "Température Sortie HPC",
+    "Temp_Sortie_LPT": "Température Sortie LPT",
+    "Pression_Sortie_HPC": "Pression Sortie HPC",
+    "Rapport_Pression_HPC": "Rapport Pression HPC"
+  },
+
+  "components": {
+    "HPC": "Compresseur Haute Pression",
+    "LPC": "Compresseur Basse Pression",
+    "LPT": "Turbine Basse Pression",
+    "HPT": "Turbine Haute Pression",
+    "FAN": "Soufflante",
+    "CORE": "Noyau Moteur",
+    "BYPASS": "Flux Secondaire",
+    "NOZZLE": "Buse d'Échappement",
+    "BEARING": "Roulement"
+  },
+
+  "risk_levels": {
+    "EMERGENCY": "URGENCE",
+    "CRITICAL": "CRITIQUE",
+    "WARNING": "ATTENTION",
+    "DEGRADED": "DÉGRADÉ",
+    "HEALTHY": "SAIN"
+  },
+
+  "statuses": {
+    "🔴 CRITICAL": "🔴 CRITIQUE",
+    "🟠 WARNING": "🟠 ATTENTION",
+    "🟡 DEGRADED": "🟡 DÉGRADÉ",
+    "🟢 HEALTHY": "🟢 SAIN"
+  },
+
+  "causes": {
+    "Blade Erosion": "Érosion des aubes de compresseur",
+    "Cooling Leak": "Fuite du système de refroidissement",
+    "Compressor Surge": "Pompage du compresseur",
+    "Aero Instability": "Instabilité aérodynamique",
+    "Efficiency Loss": "Perte d'efficacité du compresseur",
+    "Thermal Overload": "Surcharge thermique",
+    "Pressure Leak": "Fuite de pression",
+    "Bearing Wear": "Usure des roulements",
+    "FOD Damage": "Dégât par corps étranger",
+    "Seal Degradation": "Dégradation des joints",
+    "Oil Contamination": "Contamination de l'huile",
+    "Turbine Creep": "Fluage de turbine",
+    "Combustor Issue": "Problème chambre de combustion",
+    "Sensor Drift": "Dérive du capteur"
+  },
+
+  "actions": {
+    "Engine Wash": "Nettoyage du moteur",
+    "HPC Endoscopy": "Endoscopie du compresseur HP",
+    "Immediate Power Reduction": "Réduction immédiate de la puissance",
+    "Full Safety Check": "Vérification complète de sécurité",
+    "Trigger AOG Alert": "Déclencher alerte AOG",
+    "Freeze Throttle": "Geler les manettes des gaz",
+    "Create Ticket": "Créer un ticket de maintenance",
+    "Increase Monitoring": "Augmenter la surveillance",
+    "Notify Engineer": "Notifier l'ingénieur",
+    "Schedule Maintenance": "Planifier la maintenance",
+    "Replace HPC Blades": "Remplacer les aubes HPC",
+    "Inspect Cooling System": "Inspecter le système de refroidissement",
+    "Check Fuel System": "Vérifier le circuit carburant",
+    "Perform Boroscope": "Effectuer un boroscope"
+  },
+
+  "urgency_levels": {
+    "IMMEDIATE": "Action immédiate requise",
+    "URGENT": "Action urgente (sous 24h)",
+    "PLANNED": "Planifier la maintenance",
+    "PREVENTIVE": "Maintenance préventive"
+  },
+
+  "diagnosis_templates": {
+    "HPC_efficiency": "Perte d'efficacité du compresseur haute pression détectée",
+    "stall_risk": "Risque de pompage du compresseur - Situation critique",
+    "thermal_overload": "Surcharge thermique - Température excessive",
+    "pressure_loss": "Perte de pression dans le compresseur",
+    "bearing_failure": "Roulement en fin de vie - Risque de casse"
+  }
+}
