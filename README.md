@@ -12,4 +12,4 @@
 1. Cloner le projet
 ```bash
 git clone <votre-repo>
-cd AeroPredict_SaaS
+cd AeroPredict_SaaS"# aeropredict-pro" 
