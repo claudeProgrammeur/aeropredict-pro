@@ -160,22 +160,22 @@ CACHES = {
 }
 
 
-ALLOWED_HOSTS = ['*']
+# ALLOWED_HOSTS = ['*']
 
-# Base de données PostgreSQL (Render)
-DATABASES = {
-    'default': dj_database_url.config(
-        default='sqlite:///db.sqlite3',
-        conn_max_age=600
-    )
-}
+# # Base de données PostgreSQL (Render)
+# DATABASES = {
+#     'default': dj_database_url.config(
+#         default='sqlite:///db.sqlite3',
+#         conn_max_age=600
+#     )
+# }
 
-# Static files
-STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
-STATIC_URL = '/static/'
+# # Static files
+# STATIC_ROOT = os.path.join(BASE_DIR, 'staticfiles')
+# STATIC_URL = '/static/'
 
-# Security
-SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-key-for-render')
+# # Security
+# SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-key-for-render')
 
 
 EMAIL_SSL_CONTEXT = ssl.create_default_context(cafile=certifi.where())
