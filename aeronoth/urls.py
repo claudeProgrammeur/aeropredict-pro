@@ -25,7 +25,7 @@ from maintenance.views import profile_view
 urlpatterns = [
     path('admin/', admin.site.urls),
     # 🔥 AJOUTE CETTE LIGNE - Redirige / vers /accueil/
-    path('', RedirectView.as_view(url='/accueil/', permanent=False), name='root'),
+    path('', RedirectView.as_view(url='/connexion/', permanent=False), name='root'),
     path('metrics', ExportToDjangoView, name='prometheus-metrics'),  # ← AJOUTER ICI
 
     # API SaaS
