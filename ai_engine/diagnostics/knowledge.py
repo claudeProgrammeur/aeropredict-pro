@@ -214,6 +214,7 @@ class NASAKnowledgeEngine:
             "causes": [],
             "actions": []
         }
+        
         if not anomalies or len(anomalies) == 0:
             return result
         
@@ -242,13 +243,13 @@ class NASAKnowledgeEngine:
                 result["risk_level"] = "🟢 FAIBLE"
                 result["status"] = "🟢 SAIN"
             
-            # 🔥 Analyse de chaque anomalie
+            # 🔥 Analyse de chaque anomalie (utiliser real_anomalies)
             all_causes = set()
             all_actions = set()
             top_faults = []
             systems_status = {}
             
-            for a in anomalies:
+            for a in real_anomalies:  # ← CHANGEMENT ICI
                 sensor_id = a.get("sensor_id", "")
                 z_score = abs(a.get("z_score", 0))
                 sensor_name = self._translate_sensor_name(sensor_id)
@@ -287,7 +288,6 @@ class NASAKnowledgeEngine:
             result["summary"] = f"❌ Erreur diagnostic: {str(e)}"
         
         return result
-
 
 # Instance unique
 _engine = NASAKnowledgeEngine()
