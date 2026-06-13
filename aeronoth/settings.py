@@ -15,21 +15,24 @@ from pathlib import Path
 import ssl
 import certifi
 import dj_database_url
+from dotenv import load_dotenv
+from prometheus_client import django
+
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 TEMPLATES_DIR=os.path.join(BASE_DIR, 'templates')
 
 
-# env = environ.Env()
-# environ.Env.read_env(os.path.join(BASE_DIR, ".env"))
+# 2. Charger .env (optionnel, ne plante pas si fichier absent)
+load_dotenv(os.path.join(BASE_DIR, '.env'))
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-# SECRET_KEY = env('SECRET_KEY')
-SECRET_KEY = 'django-insecure-i+8(4mn_u7y*ku$&(!hdtvy2^196n^w^zj+3rss7a+(*05vc0x'
+
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-key-dev')
 
 # SECURITY WARNING: don't run with debug turned on in production!
 # DEBUG = True
@@ -118,14 +121,15 @@ ASGI_APPLICATION = 'aeronoth.asgi.application'
 #     }
 # }
 
+
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',  # ou 'postgresql_psycopg2'
-        'NAME': 'aeropredict',                    # Nom de ta base
-        'USER': 'postgres',                         # Ton utilisateur PostgreSQL
-        'PASSWORD': '@xzkmkclaude',                         # Ton mot de passe
-        'HOST': 'localhost',                        # Ou '127.0.0.1'
-        'PORT': '5433',                             # Port par défaut
+        'ENGINE': os.environ.get('DB_ENGINE'),
+        'NAME': os.environ.get('DB_NAME', 'aeropredict'),
+        'USER': os.environ.get('DB_USER', 'aeropredict'),
+        'PASSWORD': os.environ.get('DB_PASSWORD', '@xzkmkclaude'),
+        'HOST': os.environ.get('DB_HOST', 'localhost'),
+        'PORT': os.environ.get('DB_PORT', '5433'),
     }
 }
 
@@ -209,13 +213,13 @@ AUTH_PASSWORD_VALIDATORS = [
 # environ.Env.read_env(os.path.join(BASE_DIR, '.env')) 
 
 # # EMAIL CONFIGURATIONS
-# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-# EMAIL_HOST = env('EMAIL_HOST')
-# EMAIL_PORT = env('EMAIL_PORT')
-# EMAIL_HOST_USER = env('EMAIL_HOST_USER')
-# EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
-# EMAIL_USE_TLS = env('EMAIL_USE_TLS')
-# DEFAULT_FROM_EMAIL = env('DEFAULT_FROM_EMAIL')
+EMAIL_BACKEND = os.environ.get('EMAIL_BACKEND')
+EMAIL_HOST = os.environ.get('EMAIL_HOST')
+EMAIL_PORT = os.environ.get('EMAIL_PORT')
+EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD')
+EMAIL_USE_TLS = os.environ.get('EMAIL_USE_TLS')
+DEFAULT_FROM_EMAIL = os.environ.get('DEFAULT_FROM_EMAIL')
 
 # # Pour transformer la chaîne "email1,email2" en liste Python
 # ALERT_EMAIL_RECIPIENTS = env.list('ALERT_EMAIL_RECIPIENTS', default=[])
@@ -227,15 +231,6 @@ AUTH_PASSWORD_VALIDATORS = [
 # env = environ.Env() 
 # EMAIL_HOST_USER = env('EMAIL_HOST_USER') <-- C'EST ÇA QUI CAUSE L'ERREUR
 
-# Garde uniquement tes valeurs en dur :
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
-EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
-EMAIL_HOST_USER = 'claudeatsou54@gmail.com'
-EMAIL_HOST_PASSWORD = 'berr pycv piol humy' # Note: Ne partage jamais ce code en public !
-DEFAULT_FROM_EMAIL = f'AeroPredict AI <{EMAIL_HOST_USER}>'
-ALERT_EMAIL_RECIPIENTS='claudeatsou8@gmail.com'
 # https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
