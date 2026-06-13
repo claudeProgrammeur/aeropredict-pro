@@ -16,7 +16,6 @@ import ssl
 import certifi
 import dj_database_url
 from dotenv import load_dotenv
-from prometheus_client import django
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -42,15 +41,19 @@ DEBUG = False
 # ALLOWED_HOSTS pour Docker
 
 
-CSRF_TRUSTED_ORIGINS = ['http://localhost:8000', 'http://127.0.0.1:8000']
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'https://*.onrender.com',  # 🔥 AJOUTE CECI POUR RENDER
+]
 
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
-    'host.docker.internal',  # 🔥 AJOUTER CECI
-    '.ngrok.io',  # Si tu utilises ngrok
+    'host.docker.internal',
+    '.onrender.com',  # 🔥 AJOUTE CECI POUR RENDER
+    '.ngrok.io',
 ]
-
 # Application definition
 
 INSTALLED_APPS = [
