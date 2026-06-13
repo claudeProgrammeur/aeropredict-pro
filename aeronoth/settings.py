@@ -47,12 +47,15 @@ CSRF_TRUSTED_ORIGINS = [
     'https://*.onrender.com',  # 🔥 AJOUTE CECI POUR RENDER
 ]
 
+
 ALLOWED_HOSTS = [
     'localhost',
     '127.0.0.1',
     'host.docker.internal',
-    '.onrender.com',  # 🔥 AJOUTE CECI POUR RENDER
+    '.onrender.com',  # <-- AJOUTE CETTE LIGNE (le point au début est important)
     '.ngrok.io',
+    # Tu peux aussi ajouter ton URL exacte si tu préfères :
+    'aeropredict-pro-2.onrender.com',
 ]
 # Application definition
 
