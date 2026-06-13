@@ -128,16 +128,26 @@ ASGI_APPLICATION = 'aeronoth.asgi.application'
 # }
 
 
-DATABASES = {
-    'default': {
-        'ENGINE': os.environ.get('DB_ENGINE'),
-        'NAME': os.environ.get('DB_NAME', 'aeropredict'),
-        'USER': os.environ.get('DB_USER', 'aeropredict'),
-        'PASSWORD': os.environ.get('DB_PASSWORD', '@xzkmkclaude'),
-        'HOST': os.environ.get('DB_HOST', 'localhost'),
-        'PORT': os.environ.get('DB_PORT', '5433'),
+# Pour le développement local (Windows)
+if os.environ.get('LOCAL_DEV', 'False') == 'True':
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': 'aeropredict',
+            'USER': 'postgres',
+            'PASSWORD': '@xzkmkclaude',
+            'HOST': 'localhost',
+            'PORT': '5433',
+        }
     }
-}
+else:
+    # Pour Render (production)
+    DATABASES = {
+        'default': dj_database_url.config(
+            default=os.environ.get('DATABASE_URL'),
+            conn_max_age=600
+        )
+    }
 
 CHANNEL_LAYERS = {
     'default': {
